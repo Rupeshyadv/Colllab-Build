@@ -4,13 +4,26 @@ import cors from "cors"
 
 const app = express()
 
-app.use(cors())
 app.use(express.json({}))
 app.use(cookieParser())
+app.use(cors(
+    {
+        origin: process.env.CORS_ORIGIN,
+        credentials: true, 
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    }
+))
+
 app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (req, res) => {
-    res.send('Hello World!')  
-})
+// Import routes
+import { userRouter } from './routes/user.routes.js';
+
+app.use("/api/v1/users", userRouter)
+
+
+
+
+
 
 export {app}
