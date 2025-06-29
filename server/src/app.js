@@ -18,8 +18,10 @@ app.use(express.urlencoded({ extended: true }))
 
 // Import routes
 import { userRouter } from './routes/user.routes.js';
-
+import { sessionRouter } from './routes/session.routes.js';
+ 
 app.use("/api/v1/users", userRouter)
+app.use("/api/v1/sessions", sessionRouter)
 
 
 

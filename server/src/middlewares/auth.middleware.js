@@ -1,9 +1,10 @@
 import jwt from "jsonwebtoken"
 import { ApiError } from '../utils/ApiError.js'
+import { prisma } from '../db/prisma.client.js'
 
 export const authMiddleware = async (req, res, next) => {
     try {
-        const token = req.header("Authorization").replace("Bearer", "") || req.cookies?.accessToken
+        const token = req.header("Authorization").replace("Bearer ", "") || req.cookies?.accessToken
         if (!token) {
             throw new ApiError(401, "Access denied. No token provided.")
         }
@@ -15,7 +16,7 @@ export const authMiddleware = async (req, res, next) => {
         }
 
         const user = await prisma.user.findUnique({
-            where: { id: decoded.id }
+            where: { id: decoded.userId }
         })
 
         if (!user) {

@@ -3,7 +3,7 @@ import { ApiError } from '../utils/ApiError.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const generateAccessAndRefreshTokens = (user) => {
+export const generateAccessAndRefreshTokens = async (user) => {
     try {
         const payload = {
             userId: user.id, 
@@ -21,14 +21,19 @@ const generateAccessAndRefreshTokens = (user) => {
             process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION }
         )
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { refreshToken }
+        })
+
+        return { accessToken, refreshToken }
     } catch (error) {
         throw new ApiError(500, 'Error generating tokens')
     }
-    
-    return { accessToken, refreshToken }
 }
 
-const registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   const { username, name, email, password } = req.body
 
   if(!email.trim() || !password.trim() || !username.trim()) 
@@ -66,7 +71,7 @@ const registerUser = async (req, res) => {
     })
 }
 
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { username, email, password } = req.body
 
   if(!email.trim() || !password.trim() || (!username && !email)) 
@@ -86,7 +91,7 @@ const loginUser = async (req, res) => {
     throw new ApiError(401, 'Invalid email or password')
   }
 
-  const { accessToken, refreshToken } = generateAccessAndRefreshTokens(user)
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user)
 
     // cookie options
   const options = {
@@ -94,11 +99,16 @@ const loginUser = async (req, res) => {
     secure: true
   }
 
+  // adding tokens to json response for postman testing
   return res.status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json({
         message: "login successful",
+        tokens: {
+          accessToken,
+          refreshToken,
+        },
         user: {
             id: user.id,
             username: user.username,
@@ -110,7 +120,7 @@ const loginUser = async (req, res) => {
     })
 }
 
-const logoutUser = async (req, res) => {
+export const logoutUser = async (req, res) => {
   const loggedOutUser = await prisma.user.findUnique({
     where: { id: req.user.userId },
     data: {
@@ -140,11 +150,4 @@ const logoutUser = async (req, res) => {
         }
       }
     )
-}
-
-export {
-  registerUser,
-  loginUser,
-  logoutUser,
-  generateAccessAndRefreshTokens
 }
