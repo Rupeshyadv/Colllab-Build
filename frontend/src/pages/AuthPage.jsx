@@ -1,28 +1,58 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Github, Mail, Lock, User } from 'lucide-react';
 import Logo from '../assets/Logo.png'
+import { useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux';
+import { loginApi, registerApi } from '../api/authApi.js'
+import { login as authLogin, register as authRegister} from '../store/authSlice.js'
 
 function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
-  });
+  })
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-  };
+  }
 
-  const handleSubmit = (e) => {
+  const dispatch = useDispatch()
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
-  };
+
+    // SignIn 
+    if(isLogin) {
+        try {
+            const userData = await loginApi(formData.email, formData.password)
+
+            if(userData) {
+                dispatch(authLogin(userData))
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+    
+    // Sign-Up
+    else {
+        try {
+            const userData = await registerApi(formData.name, formData.email, formData.password)
+
+            if(userData) {
+                dispatch(authRegister(userData))
+            }
+        } catch (error) {
+            console.error(error)
+        }
+    }
+
+  }
 
   return (
     <>
@@ -76,12 +106,12 @@ function AuthPage() {
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleAuthSubmit} className="space-y-6">
                             {/* Sign-Up render */}
                         {!isLogin && (
                             <div className="space-y-2">
                                 <label htmlFor="name" className="block text-sm font-medium text-gray-300">
-                                    Full Name
+                                    Name
                                 </label>
                                 <div className="relative">
                                     <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -92,7 +122,7 @@ function AuthPage() {
                                         value={formData.name}
                                         onChange={handleInputChange}
                                         className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                        placeholder="Enter your full name"
+                                        placeholder="Enter your name"
                                     />
                                 </div>
                             </div>
@@ -144,35 +174,6 @@ function AuthPage() {
                                 </button>
                             </div>
                         </div>
-
-                            {/* Sign-Up render */}
-                        {!isLogin && (
-                            <div className="space-y-2">
-                                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300">
-                                    Confirm Password
-                                </label>
-                                <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                                    <input
-                                        type={showConfirmPassword ? 'text' : 'password'}
-                                        id="confirmPassword"
-                                        name="confirmPassword"
-                                        value={formData.confirmPassword}
-                                        onChange={handleInputChange}
-                                        className="w-full pl-10 pr-12 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                                        placeholder="Confirm your password"
-                                        required={!isLogin}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors duration-200"
-                                    >
-                                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                                    </button>
-                                </div>
-                            </div>
-                        )}
 
                             {/* Sign-In render */}
                         {isLogin && (

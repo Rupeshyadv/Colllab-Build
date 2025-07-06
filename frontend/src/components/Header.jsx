@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Logo from '../assets/Logo.png'; 
-import { Link } from 'react-router-dom';
-import {Link as ScrollLink} from 'react-scroll';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 const Header = () => {

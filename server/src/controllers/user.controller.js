@@ -36,7 +36,7 @@ export const generateAccessAndRefreshTokens = async (user) => {
 export const registerUser = async (req, res) => {
   const { username, name, email, password } = req.body
 
-  if(!email.trim() || !password.trim() || !username.trim()) 
+  if(!email.trim() || !password.trim() || (!username && !email)) 
     throw new ApiError(400,  'All fields are required')
 
   const existingUser = await prisma.user.findUnique({

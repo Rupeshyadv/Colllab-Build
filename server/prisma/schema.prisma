@@ -15,7 +15,6 @@ datasource db {
 
 model User {
   id              String        @id @default(uuid())
-  username        String        @unique
   name            String?
   email           String        @unique
   hashedPassword  String
@@ -26,7 +25,6 @@ model User {
   hosted_sessions Session[]     @relation("HostedSessions")
 
   @@index([email], name: "idx_user_email")
-  @@index([username], name: "idx_user_username")
 }
 
 // Room => Session
