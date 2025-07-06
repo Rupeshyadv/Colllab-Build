@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import Logo from '../assets/Logo.png'; 
+import Logo from '../../assets/Logo.png'; 
 import { Link, useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);   // For mobile view
+
+  const {isAuthenticated, userData} = useSelector((state) => state.auth)
 
   return (
     <header className="bg-[#000000] backdrop-blur-sm border-b border-[#010c07] sticky top-0 z-50">
@@ -37,18 +40,20 @@ const Header = () => {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Link 
-              to={"/login"} 
-              className="text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer">
-              Sign In
-            </Link>
-            <Link
-              to={"/register"} 
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 transform hover:scale-105 cursor-pointer">
-              Get Started
-            </Link>
-          </div>  
+          { !isAuthenticated &&
+            <div className="hidden md:flex items-center space-x-4">
+              <Link 
+                to={"/login"} 
+                className="text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer">
+                Sign In
+              </Link>
+              <Link
+                to={"/register"} 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 transform hover:scale-105 cursor-pointer">
+                Get Started
+              </Link>
+            </div>  
+          }
 
           {/* Mobile menu button */}
           <button
@@ -73,18 +78,20 @@ const Header = () => {
                 About
               </a>
               
-              <div className="px-3 py-2 space-y-2">
-                <Link
-                  to={"/login"} 
-                  className="w-full text-left text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer">
-                  Sign In
-                </Link>
-                <Link 
-                  to={"/register"}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-300/25 transition-all duration-200 cursor-pointer">
-                  Get Started
-                </Link>
-              </div>
+              { !isAuthenticated && 
+                <div className="px-3 py-2 space-y-2">
+                  <Link
+                    to={"/login"} 
+                    className="w-full text-left text-gray-300 hover:text-white transition-colors duration-200 cursor-pointer">
+                    Sign In
+                  </Link>
+                  <Link 
+                    to={"/register"}
+                    className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-300/25 transition-all duration-200 cursor-pointer">
+                    Get Started
+                  </Link>
+                </div>
+              }
             </div>
           </div>
         )}

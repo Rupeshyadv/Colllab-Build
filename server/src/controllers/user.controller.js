@@ -105,17 +105,13 @@ export const loginUser = async (req, res) => {
     .cookie("refreshToken", refreshToken, options)
     .json({
         message: "login successful",
-        tokens: {
-          accessToken,
-          refreshToken,
-        },
         user: {
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            email: user.email,
-            createdAt: user.created_at,
-            updatedAt: user.updated_at,
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          createdAt: user.created_at,
+          updatedAt: user.updated_at,
         }
     })
 }
