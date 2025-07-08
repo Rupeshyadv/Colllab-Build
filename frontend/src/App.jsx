@@ -1,5 +1,6 @@
 import AuthPage from "./pages/AuthPage"
-import LandingPage from "./pages/LandingPage"
+import { DashboardPage, LandingPage } from './pages/Pages.js'
+
 import { useSelector } from "react-redux"
 
 function App() {
@@ -7,7 +8,7 @@ function App() {
 
   return (
     <>
-      {isAuthenticated ? <LandingPage /> : <AuthPage />}  
+      {isAuthenticated ? <DashboardPage /> : <LandingPage />}  
     </>
   )
 }

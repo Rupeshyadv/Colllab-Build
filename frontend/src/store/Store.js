@@ -1,5 +1,6 @@
 import {configureStore} from '@reduxjs/toolkit';
 import authReducer from './authSlice.js'
+import roomReducer from './roomSlice.js'
 import { 
     persistStore, 
     persistReducer, 
@@ -12,16 +13,23 @@ import {
  } from 'redux-persist'
 import storage from 'redux-persist/lib/storage'
 
-const persistConfig = {
-    key: "root",
+const authPersistConfig = {
+    key: "auth",
     storage,
 }
 
-const persistedAuthReducer = persistReducer(persistConfig, authReducer)
+const roomPersistConfig = {
+    key: "room",
+    storage,
+}
+
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer)
+const persistedRoomReducer = persistReducer(roomPersistConfig, roomReducer)
 
 export const store = configureStore({
     reducer: {
         auth: persistedAuthReducer,
+        room: persistedRoomReducer
     },
     middleware: (getDefaultMiddleware) => 
         getDefaultMiddleware({

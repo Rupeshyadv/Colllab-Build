@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import Logo from '../../assets/Logo.png'; 
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);   // For mobile view
 
-  const {isAuthenticated, userData} = useSelector((state) => state.auth)
+  const {isAuthenticated } = useSelector((state) => state.auth)
 
   return (
     <header className="bg-[#000000] backdrop-blur-sm border-b border-[#010c07] sticky top-0 z-50">

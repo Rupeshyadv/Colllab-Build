@@ -2,13 +2,13 @@ import { createRoot } from 'react-dom/client'
 import './styles/index.css'
 import App from './App.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import AuthPage from './pages/AuthPage.jsx';
-import Dashboard from './pages/DashboardPage.jsx';
+import { DashboardPage, AuthPage, LandingPage, CreateRoomPage } from './pages/Pages.js'
 import Spinner from './components/Spinner.jsx'
 import { Provider } from 'react-redux';
+import { PublicRoute, PrivateRoute } from './routes/routes.js'
 import { store, persistor } from './store/Store.js';
 import { PersistGate } from 'redux-persist/integration/react';
-import LandingPage from './pages/LandingPage.jsx';
+
 
 createRoot(document.getElementById('root')).render(
   <>
@@ -16,10 +16,39 @@ createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <PersistGate persistor={persistor} loading={<Spinner />}>
         <Routes>
-          <Route path='/' element={<App />} />
-          <Route path='/login' element={<AuthPage />} />
-          <Route path='/register' element={<AuthPage/>} />
-          <Route path='/dashboard' element={<Dashboard />} />
+          <Route path='/' element={<LandingPage />} />
+          <Route 
+            path='/login' 
+            element={
+              <PublicRoute>
+                <AuthPage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path='/register' 
+            element={
+              <PublicRoute>
+                <AuthPage />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path='/dashboard' 
+            element={
+              <PrivateRoute>
+                <DashboardPage />
+              </PrivateRoute>
+            } 
+          />
+          <Route
+            path='/dashboard/create-room'
+            element={
+              <PrivateRoute>
+                <CreateRoomPage />
+              </PrivateRoute>
+            }
+          />
         </Routes>
       </PersistGate>
     </Provider>

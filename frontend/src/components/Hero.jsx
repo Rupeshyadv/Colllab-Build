@@ -1,8 +1,21 @@
-import React from 'react';
 import { Play, Users, Code, Zap } from 'lucide-react';
 import { Typewriter } from 'react-simple-typewriter';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom'
 
 const Hero = () => {
+  const {isAuthenticated} = useSelector((state) => state.auth)
+
+  const navigate = useNavigate()
+  const handleStartCodingNow = () => {
+    if(isAuthenticated) {
+      navigate('/dashboard')
+    }
+    else{
+      navigate('/login')
+    }
+  }
+
   return (
     <>
       <section className="relative bg-[#000000] min-h-screen flex items-center">
@@ -48,7 +61,9 @@ const Hero = () => {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 mb-16">
-              <button className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105">
+              <button
+                onClick={handleStartCodingNow} 
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 transform hover:scale-105">
                 Start Coding Now
               </button>
               <button className="w-full sm:w-auto flex items-center justify-center space-x-2 bg-gray-800/50 backdrop-blur-sm text-white px-8 py-4 rounded-lg text-lg font-semibold border border-gray-700 hover:bg-gray-700/50 transition-all duration-300">
