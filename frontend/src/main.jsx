@@ -3,6 +3,7 @@ import './styles/index.css'
 import App from './App.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import AuthPage from './pages/AuthPage.jsx';
+import Dashboard from './pages/DashboardPage.jsx';
 import Spinner from './components/Spinner.jsx'
 import { Provider } from 'react-redux';
 import { store, persistor } from './store/Store.js';
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
           <Route path='/' element={<App />} />
           <Route path='/login' element={<AuthPage />} />
           <Route path='/register' element={<AuthPage/>} />
+          <Route path='/dashboard' element={<Dashboard />} />
         </Routes>
       </PersistGate>
     </Provider>
