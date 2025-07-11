@@ -9,7 +9,7 @@ export const loginApi = async (email, password) => {
 
     try {
         const response = await API.post('/users/login', formData)
-        return response.data
+        return response?.data
     } catch (error) {
         console.error('Login error:', error.response?.data || error.message);
         throw error;

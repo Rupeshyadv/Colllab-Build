@@ -2,10 +2,10 @@ import Logo from '../assets/Logo.png'
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-
 const DashboardPage = () => {
 
   const allRooms = useSelector((state) => state.room.rooms)
+  console.log(allRooms)
 
   const getLanguageColor = (language) => {
     const colors = {

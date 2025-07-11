@@ -1,28 +1,22 @@
 import { createSlice } from "@reduxjs/toolkit";
+import {API} from '../api/axiosInstance'
 
 const initialState = {
     rooms: [
         // test data 
         {
-        id: '1',
-        name: 'React E-commerce Project',
-        description: 'Building a modern e-commerce platform with React and Node.js',
-        language: 'javascript',
-        owner: 'Sarah Johnson',
+            id: '2',
+            name: 'Python Data Analysis',
+            title: 'Analyzing customer data using pandas and matplotlib',
+            language: 'python',
+            owner: 'Michael Chen',
         },
         {
-        id: '2',
-        name: 'Python Data Analysis',
-        description: 'Analyzing customer data using pandas and matplotlib',
-        language: 'python',
-        owner: 'Michael Chen',
-        },
-        {
-        id: '4',
-        name: 'Algorithm Study Group',
-        description: 'Solving LeetCode problems and discussing algorithms',
-        language: 'java',
-        owner: 'Alex Kim',
+            id: '4',
+            name: 'Algorithm Study Group',
+            title: 'Solving LeetCode problems and discussing algorithms',
+            language: 'java',
+            owner: 'Alex Kim',
         }
     ]
 }
