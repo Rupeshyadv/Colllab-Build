@@ -2,10 +2,10 @@ import { prisma } from '../db/prisma.client.js'
 
 export const createSession = async (req, res) => {
     try {
-
         const session = await prisma.session.create({
             data: {
                 title: req.body?.title || 'Untitled Session',
+                language: req.body?.language || 'en',
                 host_user: {
                     connect: {
                         id: req.user.id
@@ -23,16 +23,21 @@ export const createSession = async (req, res) => {
                 },
             },
             include: {
-                user: {
-                select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    username: true,
-                    created_at: true,
-                    updated_at: true
-                }
-                }
+                participants: {
+                    select: {
+                        id: true,
+                        isHost: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                created_at: true,
+                                updated_at: true
+                            }
+                        }
+                    }
+                },
             }
             
         })
@@ -44,19 +49,39 @@ export const createSession = async (req, res) => {
     }
 }
 
-export const getSession = async (req, res) => {
+export const getSessions = async (req, res) => {
     try {
-        const { sessionId }  = req.params
+        const userId = req.user.id
 
-        if (!sessionId) {
-            return res.status(400).json({ error: 'Session ID is required' });   
+        if (!userId) {
+            return res.status(400).json({ error: 'user ID is required' });   
         }
 
-        const session = await prisma.session.findUnique({
+        const sessions = await prisma.session.findMany({
             where: {
-                id: sessionId
+                OR: [
+                    {
+                        host_user_id: userId,
+                    },
+                    {
+                        participants: {
+                            some: {
+                                user_id: userId,
+                            }
+                        }
+                    }
+                ]
             },
             include: {
+                host_user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        created_at: true,
+                        updated_at: true,
+                    },
+                },
                 participants: {
                     select: {
                         id: true,
@@ -66,7 +91,6 @@ export const getSession = async (req, res) => {
                                 id: true,
                                 name: true,
                                 email: true,
-                                username: true,
                                 created_at: true,
                                 updated_at: true
                             }
@@ -76,11 +100,11 @@ export const getSession = async (req, res) => {
             }
         })
         
-        if (!session) {
-            return res.status(404).json({ error: 'Session not found' });
+        if (!sessions) {
+            return res.status(404).json({ error: 'Sessions are not found' });
         }
 
-        return res.status(200).json(session);
+        return res.status(200).json(sessions);
     } catch (error) {
         console.error('Error fetching session:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
@@ -125,7 +149,6 @@ export const joinSession = async (req, res) => {
                         id: true,
                         name: true,
                         email: true,
-                        username: true,
                         created_at: true,
                         updated_at: true
                     }

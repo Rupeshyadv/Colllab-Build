@@ -6,20 +6,19 @@ import { createSessionRoom } from '../api/sessionRoomApi.js'
  
 function CreateRoomPage() {
   const [newRoom, setNewRoom] = useState({
-    name: '',
     title: '',
     language: 'javascript',
   })
 
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  const { userData } = useSelector((state) => state.auth)
+  const userData = useSelector((state) => state.auth.userData)
 
   const handleCreateRoom = async (e) => {
     e.preventDefault()
 
     try {
-      const sessionRoom = await createSessionRoom(userData.id, newRoom.title)
+      const sessionRoom = await createSessionRoom(userData.id, newRoom.title, newRoom.language)
 
       if (!sessionRoom) {
         throw new Error("Session creation failed")
@@ -27,7 +26,6 @@ function CreateRoomPage() {
 
       const roomPayload = {
         id: sessionRoom.id,
-        name: newRoom.name,
         title: newRoom.title,
         language: newRoom.language,
         owner: userData?.name || 'Unkown User'
@@ -50,29 +48,15 @@ return (
           <h2 className="text-2xl font-bold text-white mb-6">Create New Room</h2>
           
           <form onSubmit={handleCreateRoom} className="space-y-6">
-            <div>
-              <label htmlFor="roomName" className="block text-sm font-medium text-gray-300 mb-2">
-                Room Name
-              </label>
-              <input
-                type="text"
-                id="roomName"
-                value={newRoom.name}
-                onChange={(e) => setNewRoom({ ...newRoom, name: e.target.value })}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter room name"
-                required
-              />
-            </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-                Description
+              <label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
+                Title
               </label>
               <textarea
-                id="description"
-                value={newRoom.description}
-                onChange={(e) => setNewRoom({ ...newRoom, description: e.target.value })}
+                id="title"
+                value={newRoom.title}
+                onChange={(e) => setNewRoom({ ...newRoom, title: e.target.value })}
                 rows={3}
                 className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Describe your project or collaboration goal"

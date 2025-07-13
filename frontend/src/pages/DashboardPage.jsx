@@ -1,11 +1,24 @@
 import Logo from '../assets/Logo.png'
 import { Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-const DashboardPage = () => {
+import { useEffect, useState } from 'react';
+import { getSessionRooms } from '../api/sessionRoomApi';
+import { useDispatch } from 'react-redux';
+import { addRoom } from '../store/roomSlice';
 
-  const allRooms = useSelector((state) => state.room.rooms)
-  console.log(allRooms)
+const DashboardPage = () => {
+  const [allRooms, setAllRooms] = useState([])
+
+  const dispatch = useDispatch()
+  useEffect(() => {
+    const getData = async () => { 
+      const rooms = await getSessionRooms()
+      setAllRooms(rooms)
+      dispatch(addRoom(rooms))
+    }
+
+    getData()
+  }, [dispatch])
 
   const getLanguageColor = (language) => {
     const colors = {
@@ -29,16 +42,16 @@ const DashboardPage = () => {
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                    <div className=" p-2 rounded-md">
-                      <Link to={"/"}>
-                        <img 
-                          src={Logo}
-                          alt="Collab-Build Logo"
-                          className='h-10 w-10 rounded-lg object-cover'
-                        />
-                      </Link>
-                    </div>
-                    <span className="text-xl font-bold text-white">Collab-Build</span>
+                  <div className=" p-2 rounded-md">
+                    <Link to={"/"}>
+                      <img 
+                        src={Logo}
+                        alt="Collab-Build Logo"
+                        className='h-10 w-10 rounded-lg object-cover'
+                      />
+                    </Link>
+                  </div>
+                  <span className="text-xl font-bold text-white">Collab-Build</span>
                 </div>
               </div>
               
@@ -65,24 +78,20 @@ const DashboardPage = () => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getLanguageColor(room.language)} text-white`}>
-                    {room.language.toUpperCase()}
+                    {room.language?.toUpperCase()}
                   </div>
                 </div>
-
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-blue-400 transition-colors duration-200">
-                  {room.name}
-                </h3>
                 
                 <p className="text-gray-400 text-sm mb-4 line-clamp-2">
-                  {room.description}
+                  {room.title}
                 </p>
 
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">
-                    by {room.owner}
+                    by {room.host_user.name}
                   </span>
                   <button className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200 cursor-pointer">
-                    Join Room →
+                    Enter Room →
                   </button>
                 </div>
               </div>

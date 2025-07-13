@@ -1,11 +1,12 @@
 import {API} from './axiosInstance'
 
-export const createSessionRoom = async (hostUserId, sessionTitle='Untitled session') => {
+export const createSessionRoom = async (hostUserId, title='Untitled session', language) => {
     
     try {
         const response = await API.post('/sessions/create-session', {
             hostUserId,
-            sessionTitle
+            title,
+            language
         })
 
         return response.data
@@ -16,9 +17,9 @@ export const createSessionRoom = async (hostUserId, sessionTitle='Untitled sessi
     
 }
 
-export const getSessionRoom = async (sessionId) => {
+export const getSessionRooms = async () => {
     try {
-        const response = await API.get(`/sessions/get-session/${sessionId}`)
+        const response = await API.get('/sessions/get-sessions')
         
         return response.data
     } catch (err) {

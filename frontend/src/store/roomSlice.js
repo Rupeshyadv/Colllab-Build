@@ -6,17 +6,16 @@ const initialState = {
         // test data 
         {
             id: '2',
-            name: 'Python Data Analysis',
             title: 'Analyzing customer data using pandas and matplotlib',
             language: 'python',
-            owner: 'Michael Chen',
+            host_user: 'Michael Chen',
         },
         {
             id: '4',
             name: 'Algorithm Study Group',
             title: 'Solving LeetCode problems and discussing algorithms',
             language: 'java',
-            owner: 'Alex Kim',
+            host: 'Alex Kim',
         }
     ]
 }

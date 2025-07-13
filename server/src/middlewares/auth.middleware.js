@@ -4,7 +4,7 @@ import { prisma } from '../db/prisma.client.js'
 
 export const authMiddleware = async (req, res, next) => {
     try {
-        const token = req.header("Authorization").replace("Bearer ", "") || req.cookies?.accessToken
+        const token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.accessToken
         if (!token) {
             throw new ApiError(401, "Access denied. No token provided.")
         }
@@ -25,7 +25,6 @@ export const authMiddleware = async (req, res, next) => {
 
         req.user = {
             id: user.id,
-            username: user.username,
             name: user.name || null, 
             email: user.email,  
             createdAt: user.created_at,
@@ -35,9 +34,6 @@ export const authMiddleware = async (req, res, next) => {
         next()
 
     } catch (error) {
-        if (error instanceof ApiError) {
-            return res.status(error.statusCode).json({ message: error.message })
-        }
         console.error("Authentication error:", error)
         return res.status(500).json({ message: "Internal server error" })
     }

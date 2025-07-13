@@ -33,6 +33,7 @@ model Session {
   title        String?
   host_user    User          @relation("HostedSessions", fields: [host_user_id], references: [id])
   host_user_id String
+  language     String   @default("")
   participants Participant[]
   isActive     Boolean       @default(true)
   started_at   DateTime      @default(now())
