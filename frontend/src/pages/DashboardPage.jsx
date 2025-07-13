@@ -5,16 +5,25 @@ import { useEffect, useState } from 'react';
 import { getSessionRooms } from '../api/sessionRoomApi';
 import { useDispatch } from 'react-redux';
 import { addRoom } from '../store/roomSlice';
+import Spinner from '../components/Spinner';
 
 const DashboardPage = () => {
   const [allRooms, setAllRooms] = useState([])
+  const [isLoadingRooms, setIsLoadingRooms] = useState(false)
 
   const dispatch = useDispatch()
   useEffect(() => {
     const getData = async () => { 
-      const rooms = await getSessionRooms()
-      setAllRooms(rooms)
-      dispatch(addRoom(rooms))
+      setIsLoadingRooms(true)
+      try {
+        const rooms = await getSessionRooms()
+        setAllRooms(rooms)
+        dispatch(addRoom(rooms))
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setIsLoadingRooms(false)
+      }
     }
 
     getData()
@@ -54,7 +63,7 @@ const DashboardPage = () => {
                   <span className="text-xl font-bold text-white">Collab-Build</span>
                 </div>
               </div>
-              
+
               <Link
                 to={'/dashboard/create-room'}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
@@ -67,6 +76,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Main Content => rooms display*/}
+        {isLoadingRooms && <Spinner />}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
           {/* Rooms Grid */}
