@@ -27,3 +27,13 @@ export const getSessionRooms = async () => {
         throw err
     }
 }
+
+export const joinSessionRoom = async (sessionId) => {
+    try {
+        const response = await API.post(`/sessions/join-session/${sessionId}`)
+        return response.data
+    } catch (err) {
+        console.error("Join Session Error:", err.response?.data || err.message)
+        throw err
+    }
+}

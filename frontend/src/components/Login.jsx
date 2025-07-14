@@ -85,18 +85,6 @@ export function Login() {
 
                     <div className="flex bg-gray-700/50 rounded-lg p-1 mb-8">
                         <button
-                            onClick={() => setIsLogin(true)}
-                            className={
-                                `flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer
-                                ${
-                                    isLogin ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg': 'text-gray-400 hover:text-white'
-                                }`
-                            }
-                        >
-                            Sign In
-                        </button>
-
-                        <button
                             onClick={() => setIsLogin(false)}
                             className={
                                 `flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer
@@ -106,6 +94,17 @@ export function Login() {
                             }
                         >
                             Sign Up
+                        </button>
+                        <button
+                            onClick={() => setIsLogin(true)}
+                            className={
+                                `flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer
+                                ${
+                                    isLogin ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg': 'text-gray-400 hover:text-white'
+                                }`
+                            }
+                        >
+                            Sign In
                         </button>
                     </div>
 

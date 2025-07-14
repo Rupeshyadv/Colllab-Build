@@ -129,6 +129,32 @@ export const joinSession = async (req, res) => {
             return res.status(404).json({ error: 'Session not found' })
         }
 
+        const participantExists = await prisma.participant.findUnique({
+            where: {
+                user_id_session_id: {
+                    user_id: req.user.id,
+                    session_id: sessionId
+                }
+            },
+
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        created_at: true,
+                        updated_at: true
+                    }
+                },
+                session: true
+            }
+        })
+
+        if (participantExists) {
+            return res.status(200).json(participantExists);
+        }
+
         const participant = await prisma.participant.create({
             data: {
                 user: {

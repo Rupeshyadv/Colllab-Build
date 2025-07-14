@@ -1,8 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import './styles/index.css'
-import App from './App.jsx'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { DashboardPage, AuthPage, LandingPage, CreateRoomPage } from './pages/Pages.js'
+import { DashboardPage, AuthPage, LandingPage, CreateRoomPage, RoomPage } from './pages/Pages.js'
 import Spinner from './components/Spinner.jsx'
 import { Provider } from 'react-redux';
 import { PublicRoute, PrivateRoute } from './routes/routes.js'
@@ -46,6 +45,14 @@ createRoot(document.getElementById('root')).render(
             element={
               <PrivateRoute>
                 <CreateRoomPage />
+              </PrivateRoute>
+            }
+          />
+          <Route 
+            path='/room/:roomId'
+            element={
+              <PrivateRoute>
+                <RoomPage />
               </PrivateRoute>
             }
           />

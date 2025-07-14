@@ -6,6 +6,7 @@ import { getSessionRooms } from '../api/sessionRoomApi';
 import { useDispatch } from 'react-redux';
 import { addRoom } from '../store/roomSlice';
 import Spinner from '../components/Spinner';
+import JoinRoom from '../components/Room/JoinRoom';
 
 const DashboardPage = () => {
   const [allRooms, setAllRooms] = useState([])
@@ -64,12 +65,14 @@ const DashboardPage = () => {
                 </div>
               </div>
 
+              <JoinRoom />
+
               <Link
                 to={'/dashboard/create-room'}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
               >
                 <Plus className="h-5 w-5" />
-                <span>New Room</span>
+                <span>Create Room</span>
               </Link>
             </div>
           </div>
