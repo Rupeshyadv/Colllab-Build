@@ -37,3 +37,23 @@ export const joinSessionRoom = async (sessionId) => {
         throw err
     }
 }
+
+export const getSessionCode = async (sessionId) => {
+    try {
+        const response = await API.get(`/sessions/${sessionId}/get-code`)
+        return response.data
+    } catch (err) {
+        console.error("Get Session Code Error:", err.response?.data || err.message)
+        throw err
+    }
+}
+
+export const updateSessionCode = async (sessionId, code) => {
+    try {
+        const response = await API.patch(`/sessions/${sessionId}/update-code`, {code})
+        return response.data
+    } catch (err) {
+        console.error("Update Session Code Error:", err.response?.data || err.message)
+        throw err
+    }
+}

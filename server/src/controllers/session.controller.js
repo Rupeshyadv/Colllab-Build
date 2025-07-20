@@ -193,3 +193,45 @@ export const joinSession = async (req, res) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 } 
+
+export const getCode = async (req, res) => {
+    try {
+        const {sessionId} = req.params
+        const code = await prisma.session.findUnique({
+            where: {
+                id: sessionId
+            },
+            select: {
+                code: true
+            }
+        })
+        
+        return res.status(200).json(code);
+    } catch (error) {
+        console.error('Error fetching code:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
+
+export const patchCode = async (req, res) => {
+    try {
+        const {sessionId} = req.params  
+        const {code} = req.body
+
+        const updatedCode = await prisma.session.update({
+            where: {
+                id: sessionId
+            },
+            data: {
+                code: code,
+            },
+            select: {
+                code: true
+            }
+        })
+        return res.status(200).json(updatedCode);
+    } catch (error) {
+        console.error('Error updating code:', error);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+}
