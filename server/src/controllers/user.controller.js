@@ -94,6 +94,7 @@ export const loginUser = async (req, res) => {
     // cookie options
   const options = {
     httpOnly: true,
+    maxAge: 7 * 60 * 60 * 1000 // 7 days
   }
 
   // adding tokens to json response for postman testing
@@ -123,6 +124,7 @@ export const logoutUser = async (req, res) => {
     // cookie options
   const options = {
     httpOnly: true,
+    maxAge: 7 * 60 * 60 * 1000 // 7 days
   }
 
   return res.status(200)

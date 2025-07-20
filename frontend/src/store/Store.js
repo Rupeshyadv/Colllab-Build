@@ -1,6 +1,7 @@
 import {configureStore} from '@reduxjs/toolkit';
 import authReducer from './authSlice.js'
 import roomReducer from './roomSlice.js'
+import editorReducer from './editorSlice.js'
 import { 
     persistStore, 
     persistReducer, 
@@ -23,13 +24,20 @@ const roomPersistConfig = {
     storage,
 }
 
+const editorPersistConfig = {
+    key: "editor",
+    storage,
+}
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer)
 const persistedRoomReducer = persistReducer(roomPersistConfig, roomReducer)
+const persistedEditorReducer = persistReducer(editorPersistConfig, editorReducer)
 
 export const store = configureStore({
     reducer: {
         auth: persistedAuthReducer,
-        room: persistedRoomReducer
+        room: persistedRoomReducer,
+        editor: persistedEditorReducer,
     },
     middleware: (getDefaultMiddleware) => 
         getDefaultMiddleware({

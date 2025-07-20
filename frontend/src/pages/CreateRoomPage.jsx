@@ -41,7 +41,7 @@ function CreateRoomPage() {
 
 return (
     <div className="min-h-screen bg-[#000000]">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
         {/* Create Room Form */} 
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700">

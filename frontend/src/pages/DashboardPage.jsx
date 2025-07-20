@@ -1,6 +1,7 @@
 import Logo from '../assets/Logo.png'
-import { Plus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Plus, Copy } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getSessionRooms } from '../api/sessionRoomApi';
 import { useDispatch } from 'react-redux';
@@ -41,6 +42,13 @@ const DashboardPage = () => {
     };
     return colors[language] || 'from-gray-500 to-gray-600';
   };
+
+  const copyToClipboard = (roomId) => {
+    navigator.clipboard.writeText(roomId)
+    toast.success('Room ID copied to clipboard')
+  }
+
+  const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-[#000000]">
@@ -94,8 +102,17 @@ const DashboardPage = () => {
                     {room.language?.toUpperCase()}
                   </div>
                 </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-300 bg-gray-700 px-2 py-1 rounded-md break-words">
+                    {room.id}
+                  </span>
+                  <button onClick={() => copyToClipboard(room.id)} className="ml-2 text-gray-400 hover:text-white cursor-pointer">
+                    <Copy size={16} />
+                  </button>
+                </div>
                 
-                <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                <p className="text-gray-400 text-sm mb-4 line-clamp-2 mt-1.5 ml-1.5">
                   {room.title}
                 </p>
 
@@ -103,7 +120,10 @@ const DashboardPage = () => {
                   <span className="text-xs text-gray-500">
                     by {room.host_user.name}
                   </span>
-                  <button className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200 cursor-pointer">
+                  <button 
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200 cursor-pointer"
+                    onClick={() => navigate(`/room/${room.id}`)}
+                  >
                     Enter Room →
                   </button>
                 </div>

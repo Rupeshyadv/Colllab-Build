@@ -6,6 +6,7 @@ import Spinner from './components/Spinner.jsx'
 import { Provider } from 'react-redux';
 import { PublicRoute, PrivateRoute } from './routes/routes.js'
 import { store, persistor } from './store/Store.js';
+import { Toaster } from 'react-hot-toast';
 import { PersistGate } from 'redux-persist/integration/react';
 
 
@@ -14,6 +15,7 @@ createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Provider store={store}>
       <PersistGate persistor={persistor} loading={<Spinner />}>
+        <Toaster />
         <Routes>
           <Route path='/' element={<LandingPage />} />
           <Route 
