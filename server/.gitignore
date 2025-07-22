@@ -41,7 +41,7 @@ tmp/
 *.tmp
 
 # Ignore Postman settings
-..vscode/
+../.vscode
 
 # MongoDB dumps
 dump/
