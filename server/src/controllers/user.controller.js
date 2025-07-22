@@ -124,7 +124,7 @@ export const logoutUser = async (req, res) => {
     // cookie options
   const options = {
     httpOnly: true,
-    maxAge: 7 * 60 * 60 * 1000 // 7 days
+    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
   }
 
   return res.status(200)

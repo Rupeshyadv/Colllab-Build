@@ -31,3 +31,13 @@ export const registerApi = async (name=null, email, password) => {
         throw error;
     }
 }
+
+export const isUserAuthenticatedApi = async () => {
+    try {
+        const response = await API.get('/users/auth-check')
+        return response?.data
+    } catch (error) {
+        console.error('Login error:', error.response?.data || error.message);
+        throw error;
+    }
+}

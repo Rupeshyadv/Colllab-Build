@@ -4,7 +4,7 @@ import { DashboardPage, LandingPage } from './pages/Pages.js'
 import { useSelector } from "react-redux"
 
 function App() {
-  const { isAuthenticated, userData } = useSelector((state) => state.auth);
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
     <>

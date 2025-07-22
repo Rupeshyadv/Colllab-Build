@@ -10,5 +10,7 @@ userRouter.route("/login").post(loginUser)
 // Secure routes
 userRouter.route("/logout").post(authMiddleware, logoutUser)
 
+userRouter.route("/auth-check").get(authMiddleware, (req, res) => res.sendStatus(200))
+
 
 export { userRouter }

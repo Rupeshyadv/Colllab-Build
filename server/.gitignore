@@ -40,6 +40,9 @@ build/
 tmp/
 *.tmp
 
+# Ignore Postman settings
+.vscode/
+
 # MongoDB dumps
 dump/
 
