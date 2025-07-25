@@ -5,7 +5,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { initializeSocketIO } from './socket/socket.index.js';
  
-
 export const app = express()
 export const httpServer = createServer(app)
 export const io = new Server(httpServer, {
@@ -15,8 +14,10 @@ export const io = new Server(httpServer, {
     },
     pingTimeout: 40000,
     pingInterval: 10000,
-    
+    transports: ['websocket', 'polling'],
 })
+
+console.log("print io", io)
 
 app.use(express.json({}))
 app.use(cookieParser())

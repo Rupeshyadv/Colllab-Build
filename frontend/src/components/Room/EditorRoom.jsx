@@ -6,10 +6,53 @@ import { setEditorCode } from '../../store/editorSlice'
 import { getSessionCode, updateSessionCode } from '../../api/sessionRoomApi'
 import { debounce } from 'lodash'
 import LZString from 'lz-string'
+import { toast } from 'react-hot-toast'
+import { socket } from '../../services/socket.js'
+import { ClientToServerEvents, ServerToClientEvents } from '../../../../server/src/socket/socket.events.js'
 
 function EditorRoom() {
   const dispatch = useDispatch()
   const { roomId } = useParams()  
+  const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
+  const navigate = useNavigate()
+
+  // Socket connection 
+  useEffect(() => {
+    if (!socket.connected) {
+      socket.connect()
+    }
+
+    // emit join 
+    socket.emit(ClientToServerEvents.JOIN_ROOM, { roomId })
+
+    const handleUserJoined = ({ userId }) => {
+      toast.success(`User ${userId} joined the room.`)
+    }
+
+    const handleCodeUpdate = ({ code }) => {
+      dispatch(setEditorCode({ roomId, code }))
+    }
+
+    const handleUserLeft = ({ userId }) => {
+      toast.error(`User ${userId} left the room.`)
+    }   
+
+    socket.on(ServerToClientEvents.USER_JOINED, handleUserJoined)
+    socket.on(ServerToClientEvents.CODE_UPDATE, handleCodeUpdate)
+    socket.on(ServerToClientEvents.USER_LEFT, handleUserLeft)
+    
+    // clean up the socket connection when the component unmounts or roomId changes
+    return () => {
+      if (socket.connected) {
+        socket.emit(ClientToServerEvents.LEAVE_ROOM, { roomId })
+        socket.off(ServerToClientEvents.USER_JOINED, handleUserJoined)
+        socket.off(ServerToClientEvents.CODE_UPDATE, handleCodeUpdate)
+        socket.off(ServerToClientEvents.USER_LEFT, handleUserLeft)
+        
+        socket.disconnect()
+      }
+    }
+  }, [roomId, dispatch])
 
   useEffect(() => {
     const fetchSessionCode = async () => {
@@ -24,9 +67,6 @@ function EditorRoom() {
     fetchSessionCode()
   }, [roomId, dispatch])
 
-  const code  = useSelector((state) => state.editor.roomCodes[roomId] || '')
-
-
   const handleCodeChange = useMemo( () => {
     return debounce( async (value) => {
       const payload = {
@@ -36,12 +76,14 @@ function EditorRoom() {
 
       dispatch(setEditorCode(payload))
 
+      // Broadcast the code change to other users in the room
+      socket.emit(ClientToServerEvents.CODE_CHANGE, payload)
+
       const compressedCode = LZString.compressToUTF16(value)
       await updateSessionCode(roomId, compressedCode)
-    }, 3000)
+    }, 2000)
   }, [roomId, dispatch])
 
-  const navigate = useNavigate()
   const handleExitRoom = () => {    
     navigate('/dashboard')
   }
