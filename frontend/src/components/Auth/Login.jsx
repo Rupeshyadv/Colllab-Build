@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Github, Mail, Lock, User } from 'lucide-react';
-import Logo from '../assets/Logo.png'
+import Logo from '../../assets/Logo.png'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux';
-import { loginApi, registerApi } from '../api/authApi.js'
-import { login as authLogin, register as authRegister} from '../store/authSlice.js'
+import { loginApi, registerApi } from '../../api/authApi.js'
+import { login as authLogin, register as authRegister} from '../../store/authSlice.js'
 
 export function Login() {
   const [isLogin, setIsLogin] = useState(true);

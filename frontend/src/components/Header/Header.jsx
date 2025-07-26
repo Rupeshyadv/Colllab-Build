@@ -3,6 +3,7 @@ import { Menu, X } from 'lucide-react';
 import Logo from '../../assets/Logo.png'; 
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { Logout as LogoutBtn } from '../Auth/Logout'
 
 
 const Header = () => {
@@ -55,6 +56,10 @@ const Header = () => {
             </div>  
           }
 
+          {
+            isAuthenticated && <LogoutBtn />
+          }
+
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -92,6 +97,10 @@ const Header = () => {
                   </Link>
                 </div>
               }
+
+            {
+              isAuthenticated && <LogoutBtn />
+            }
             </div>
           </div>
         )}

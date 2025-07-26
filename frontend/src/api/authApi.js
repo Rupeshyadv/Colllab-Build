@@ -25,9 +25,18 @@ export const registerApi = async (name=null, email, password) => {
 
     try {
         const response = await API.post('/users/register', formData)
-        return response.data
+        return response?.data
     } catch (error) {
         console.error('Login error:', error.response?.data || error.message);
+        throw error;
+    }
+}
+export const logoutApi = async () =>{
+    try {
+        const response = await API.post('/users/logout')
+        return response?.data
+    } catch (error) {
+        console.error('Logout error:', error.response?.data || error.message);
         throw error;
     }
 }

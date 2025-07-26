@@ -1,3 +1,4 @@
+import { access } from 'fs'
 import { prisma } from '../db/prisma.client.js'
 import { ApiError } from '../utils/ApiError.js'
 import bcrypt from 'bcryptjs'
@@ -94,7 +95,7 @@ export const loginUser = async (req, res) => {
     // cookie options
   const options = {
     httpOnly: true,
-    maxAge: 7 * 60 * 60 * 1000 // 7 days
+    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
   }
 
   // adding tokens to json response for postman testing
@@ -114,8 +115,13 @@ export const loginUser = async (req, res) => {
 }
 
 export const logoutUser = async (req, res) => {
-  const loggedOutUser = await prisma.user.findUnique({
-    where: { id: req.user.userId },
+  const userId = req.user?.id;  
+  if (!userId) {
+    return res.status(400).json({ message: "User ID not found" });
+  }
+
+  const loggedOutUser = await prisma.user.update({
+    where: { id: userId },
     data: {
       refreshToken: ""
     }
