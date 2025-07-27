@@ -1,7 +1,7 @@
 import { Editor } from '@monaco-editor/react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { setEditorCode } from '../../store/editorSlice'
 import { getSessionCode, updateSessionCode } from '../../api/sessionRoomApi'
 import { debounce } from 'lodash'
@@ -16,44 +16,133 @@ function EditorRoom() {
   const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
   const navigate = useNavigate()
 
-  // Socket connection 
+  const editorRef = useRef();
+  const [remoteCursors, setRemoteCursors] = useState({}); // userId -> decorationId
+
+  const handleEditorDidMount = (editor) => {
+    editorRef.current = editor;
+
+    // Listen to local cursor changes
+    editor.onDidChangeCursorSelection(() => {
+      const selection = editor.getSelection();
+      if (selection) {
+        socket.emit(ClientToServerEvents.CURSOR_MOVE, {
+          roomId,
+          cursor: {
+            startLineNumber: selection.startLineNumber,
+            startColumn: selection.startColumn,
+            endLineNumber: selection.endLineNumber,
+            endColumn: selection.endColumn,
+          },
+        });
+      }
+    });
+  };
+
   useEffect(() => {
-    if (!socket.connected) {
-      socket.connect()
-    }
+    const handleRemoteCursorUpdate = ({ userId, cursor, color }) => {
+      if (!editorRef.current) return;
 
-    // emit join 
+      const oldDecorations = remoteCursors[userId] || [];
+
+      // Convert cursor JSON back to Monaco Range
+      const range = new window.monaco.Range(
+        cursor.startLineNumber,
+        cursor.startColumn,
+        cursor.endLineNumber,
+        cursor.endColumn
+      );
+
+      // Add remote cursor decoration
+      const newDecorations = editorRef.current.deltaDecorations(oldDecorations, [
+        {
+          range,
+          options: {
+            className: `remote-cursor ${color}`, // thin cursor
+            stickiness: 1, // ensures decoration sticks to text
+          },
+        },
+      ]);
+
+      // Update decoration reference
+      setRemoteCursors((prev) => ({
+        ...prev,
+        [userId]: newDecorations,
+      }));
+    };
+
+    socket.on(ServerToClientEvents.CURSOR_UPDATE, handleRemoteCursorUpdate);
+
+    return () => {
+      socket.off(ServerToClientEvents.CURSOR_UPDATE, handleRemoteCursorUpdate);
+    };
+  }); 
+
+
+  // Socket join-room connection 
+  useEffect(() => {
+    if (!socket.connected) socket.connect()
+
     socket.emit(ClientToServerEvents.JOIN_ROOM, { roomId })
-
-    const handleUserJoined = ({ userId }) => {
-      toast.success(`User ${userId} joined the room.`)
-    }
-
-    const handleCodeUpdate = ({ code }) => {
-      dispatch(setEditorCode({ roomId, code }))
-    }
-
-    const handleUserLeft = ({ userId }) => {
-      toast.error(`User ${userId} left the room.`)
-    }   
-
-    socket.on(ServerToClientEvents.USER_JOINED, handleUserJoined)
-    socket.on(ServerToClientEvents.CODE_UPDATE, handleCodeUpdate)
-    socket.on(ServerToClientEvents.USER_LEFT, handleUserLeft)
     
     // clean up the socket connection when the component unmounts or roomId changes
     return () => {
-      if (socket.connected) {
-        socket.emit(ClientToServerEvents.LEAVE_ROOM, { roomId })
-        socket.off(ServerToClientEvents.USER_JOINED, handleUserJoined)
-        socket.off(ServerToClientEvents.CODE_UPDATE, handleCodeUpdate)
-        socket.off(ServerToClientEvents.USER_LEFT, handleUserLeft)
-        
-        socket.disconnect()
-      }
+      if (socket.connected) socket.disconnect()
+    }
+  }, [roomId])
+
+  // user joined notification
+  useEffect(() => {
+    const handleUserJoined = ({ userId }) => {
+      if (userId === socket.id) return
+      toast.success(`User ${userId} joined the room.`)
+    }
+
+    socket.on(ServerToClientEvents.USER_JOINED, handleUserJoined)
+
+    return () => {
+      socket.off(ServerToClientEvents.USER_JOINED, handleUserJoined)
+    }
+  }, [roomId])
+
+  // Code sync
+  useEffect(() => {
+    const handleCodeUpdate = ({ code }) => {
+      dispatch(setEditorCode({ roomId, code }))
+    }
+    socket.on(ServerToClientEvents.CODE_UPDATE, handleCodeUpdate)
+
+    return () => {
+      socket.off(ServerToClientEvents.CODE_UPDATE, handleCodeUpdate)
     }
   }, [roomId, dispatch])
 
+  // disappear user's cursor after exit room
+  useEffect(() => {
+    const handleUserLeft = ({ userId }) => {
+      toast.error(`User ${userId} left the room.`);
+
+      if (editorRef.current && remoteCursors[userId]) {
+        // Remove the cursor decoration
+        editorRef.current.deltaDecorations(remoteCursors[userId], []);
+
+        // Remove from state
+        setRemoteCursors((prev) => {
+          const { [userId]: _, ...rest } = prev;
+          return rest;
+        });
+      }
+    };
+
+    socket.on(ServerToClientEvents.USER_LEFT, handleUserLeft);
+    
+    return () => {
+      socket.off(ServerToClientEvents.USER_LEFT, handleUserLeft);
+    };
+
+  }, [remoteCursors]);
+
+  // fetch code from server
   useEffect(() => {
     const fetchSessionCode = async () => {
       try {
@@ -67,6 +156,7 @@ function EditorRoom() {
     fetchSessionCode()
   }, [roomId, dispatch])
 
+  // Update code in server -> debounced 
   const handleCodeChange = useMemo( () => {
     return debounce( async (value) => {
       const payload = {
@@ -85,6 +175,7 @@ function EditorRoom() {
   }, [roomId, dispatch])
 
   const handleExitRoom = () => {    
+    socket.emit(ClientToServerEvents.LEAVE_ROOM, { roomId });
     navigate('/dashboard')
   }
 
@@ -109,6 +200,7 @@ function EditorRoom() {
           defaultLanguage="javascript"
           theme="vs-dark"
           value={code}
+          onMount={handleEditorDidMount}
           onChange={handleCodeChange}
           options={{
             fontSize: 15,

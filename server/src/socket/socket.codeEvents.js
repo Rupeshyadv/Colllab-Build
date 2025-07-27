@@ -21,4 +21,9 @@ export const registerCodeEvents = (socket, io) => {
     socket.leave(roomId)
     socket.to(roomId).emit(ServerToClientEvents.USER_LEFT, { userId: socket.id })
   })
+
+  // cursor movements
+  socket.on(ClientToServerEvents.CURSOR_MOVE, ({ roomId, cursor }) => {
+    socket.to(roomId).emit(ServerToClientEvents.CURSOR_UPDATE, { cursor, userId: socket.id, color: "blue" })
+  })
 }   
