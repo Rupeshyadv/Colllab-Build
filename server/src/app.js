@@ -17,8 +17,6 @@ export const io = new Server(httpServer, {
     transports: ['websocket', 'polling'],
 })
 
-console.log("print io", io)
-
 app.use(express.json({}))
 app.use(cookieParser())
 app.use(cors(

@@ -13,10 +13,12 @@ import { ClientToServerEvents, ServerToClientEvents } from '../../../../server/s
 function EditorRoom() {
   const dispatch = useDispatch()
   const { roomId } = useParams()  
+  const { userData } = useSelector((state) => state.auth) 
   const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
   const navigate = useNavigate()
 
   const editorRef = useRef();
+  const cursorRef = useRef();
   const [remoteCursors, setRemoteCursors] = useState({}); // userId -> decorationId
 
   const handleEditorDidMount = (editor) => {
@@ -25,15 +27,18 @@ function EditorRoom() {
     // Listen to local cursor changes
     editor.onDidChangeCursorSelection(() => {
       const selection = editor.getSelection();
+      cursorRef.current = {
+        startLineNumber: selection.startLineNumber,
+        startColumn: selection.startColumn,
+        endLineNumber: selection.endLineNumber,
+        endColumn: selection.endColumn,
+      }
+
       if (selection) {
         socket.emit(ClientToServerEvents.CURSOR_MOVE, {
           roomId,
-          cursor: {
-            startLineNumber: selection.startLineNumber,
-            startColumn: selection.startColumn,
-            endLineNumber: selection.endLineNumber,
-            endColumn: selection.endColumn,
-          },
+          cursor: cursorRef.current,
+          userId: userData.user.id
         });
       }
     });
@@ -83,18 +88,17 @@ function EditorRoom() {
   useEffect(() => {
     if (!socket.connected) socket.connect()
 
-    socket.emit(ClientToServerEvents.JOIN_ROOM, { roomId })
+    socket.emit(ClientToServerEvents.JOIN_ROOM, { roomId, userId: userData.user.id })
     
     // clean up the socket connection when the component unmounts or roomId changes
     return () => {
       if (socket.connected) socket.disconnect()
     }
-  }, [roomId])
+  }, [roomId, userData.user.id])
 
   // user joined notification
   useEffect(() => {
     const handleUserJoined = ({ userId }) => {
-      if (userId === socket.id) return
       toast.success(`User ${userId} joined the room.`)
     }
 
@@ -140,7 +144,7 @@ function EditorRoom() {
       socket.off(ServerToClientEvents.USER_LEFT, handleUserLeft);
     };
 
-  }, [remoteCursors]);
+  }, [remoteCursors, roomId]);
 
   // fetch code from server
   useEffect(() => {
@@ -175,7 +179,7 @@ function EditorRoom() {
   }, [roomId, dispatch])
 
   const handleExitRoom = () => {    
-    socket.emit(ClientToServerEvents.LEAVE_ROOM, { roomId });
+    socket.emit(ClientToServerEvents.LEAVE_ROOM, { roomId, userId: userData.user.id });
     navigate('/dashboard')
   }
 
