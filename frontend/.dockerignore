@@ -1,0 +1,30 @@
+# Node dependencies (installed in container)
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Vite build output
+dist
+build
+
+# Logs
+*.log
+
+# Local environment variables
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# Docker configs (not needed inside image)
+Dockerfile
+docker-compose.yaml
+
+# IDE / OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
