@@ -9,6 +9,7 @@ import LZString from 'lz-string'
 import { toast } from 'react-hot-toast'
 import { socket } from '../../services/socket.js'
 import { ClientToServerEvents, ServerToClientEvents } from '../../../../server/src/socket/socket.events.js'
+import TerminalRoom from './TerminalRoom.jsx'
 
 function EditorRoom() {
   const dispatch = useDispatch()
@@ -220,6 +221,8 @@ function EditorRoom() {
           }}
         />
       </div>
+      
+      <TerminalRoom />
     </div>
   )
 

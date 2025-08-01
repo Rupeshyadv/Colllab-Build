@@ -28,7 +28,9 @@
     "react-simple-typewriter": "^5.0.1",
     "redux-persist": "^6.0.0",
     "socket.io-client": "^4.8.1",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "xterm": "^5.3.0",
+    "xterm-addon-fit": "^0.8.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",

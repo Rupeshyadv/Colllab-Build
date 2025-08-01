@@ -9,7 +9,6 @@ import { store, persistor } from './store/Store.js';
 import { Toaster } from 'react-hot-toast';
 import { PersistGate } from 'redux-persist/integration/react';
 
-
 createRoot(document.getElementById('root')).render(
   <>
   <BrowserRouter>
