@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import {API} from '../api/axiosInstance'
 
 const initialState = {
     rooms: []

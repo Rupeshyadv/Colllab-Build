@@ -16,6 +16,11 @@ export const ClientToServerEvents = {
   // host actions
   KICK_USER: 'kick_user',
   END_SESSION: 'end_session',
+
+  // Code execution
+  START_EXECUTION: 'start_execution',
+  TERMINAL_INPUT: 'terminal_input',
+
 };
 
 export const ServerToClientEvents = {
@@ -38,6 +43,11 @@ export const ServerToClientEvents = {
   // host actions
   USER_KICKED: 'user_kicked',
   SESSION_ENDED: 'session_ended',
+
+  // Code execution
+  EXECUTION_STARTED: 'execution_started',
+  EXECUTION_ENDED: 'execution_ended',
+  TERMINAL_OUTPUT: 'terminal_output',
 
   // Miscellaneous
   SOCKET_ERROR: 'socket_error',

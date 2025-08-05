@@ -1,7 +1,7 @@
 import {configureStore} from '@reduxjs/toolkit';
 import authReducer from './authSlice.js'
-import roomReducer from './roomSlice.js'
-import editorReducer from './editorSlice.js'
+import roomReducer from './Room/roomSlice.js'
+import editorReducer from './Room/editorSlice.js'
 import { 
     persistStore, 
     persistReducer, 

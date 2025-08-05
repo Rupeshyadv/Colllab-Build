@@ -126,7 +126,10 @@ function TerminalRoom() {
   }, [roomId, terminalHeight])
 
   return (
-    <div ref={containerRef} className="flex flex-col bg-gray-[#000000]">       
+    <div 
+      ref={containerRef} 
+      className="flex flex-col bg-gray-[#000000]"
+    >       
         {/* Resize handle */}
         <div
           ref={resizeRef}

@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getSessionRooms } from '../api/sessionRoomApi';
 import { useDispatch } from 'react-redux';
-import { addRoom } from '../store/roomSlice';
+import { addRoom } from '../store/Room/roomSlice';
 import Spinner from '../components/Spinner';
 import JoinRoom from '../components/Room/JoinRoom';
 

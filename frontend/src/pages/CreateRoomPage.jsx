@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { addRoom } from '../store/roomSlice'
+import { addRoom } from '../store/Room/roomSlice.js'
 import { createSessionRoom } from '../api/sessionRoomApi.js'
  
 function CreateRoomPage() {
