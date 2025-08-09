@@ -24,7 +24,8 @@ export const registerTerminalEvents = (socket, io) => {
         // pipe the output stream to the socket room
         stream.on('data', (chunk) => {
             const output = chunk.toString();
-            socket.to(roomId).emit(ServerToClientEvents.TERMINAL_OUTPUT, { output });
+            console.log("Terminal output:", output);
+            io.to(roomId).emit(ServerToClientEvents.TERMINAL_OUTPUT, { output });
         });
 
         // when the program fineshes, clean up

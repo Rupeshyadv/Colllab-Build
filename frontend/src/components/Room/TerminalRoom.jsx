@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom'
 import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
+import { socket } from '../../services/socket.js'
+import { ClientToServerEvents, ServerToClientEvents } from '../../../../server/src/socket/socket.events.js'
 
 function TerminalRoom() {
   const terminalRef = useRef(null)
@@ -11,6 +13,8 @@ function TerminalRoom() {
 
   const [terminalHeight, setTerminalHeight] = useState(400)
   const [isResizing, setIsResizing] = useState(false)
+  
+  // const [codeOutput, setCodeOutput] = useState('')
 
   const handleMouseDown = useCallback((e) => {
     e.preventDefault()
@@ -38,6 +42,20 @@ function TerminalRoom() {
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
   }, [terminalHeight])
+
+  useEffect(() => {
+    const handleTerminalOutput = ({ output }) => {
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.terminal.write(output)
+      }
+    }
+
+    socket.on(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
+
+    return () => {
+      socket.off(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
+    }
+  }, [])
 
   useEffect(() => {
     if (!terminalRef.current) return

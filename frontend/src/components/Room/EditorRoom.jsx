@@ -184,19 +184,33 @@ function EditorRoom() {
     navigate('/dashboard')
   }
 
+  const handleRunCode = () => {
+    const codeData = {
+      code, 
+      language: 'cpp' // or any other language you want to support
+    } 
+    socket.emit(ClientToServerEvents.START_EXECUTION, { roomId, codeData })
+
+  }   
+
   return (
     <div className="flex flex-col h-screen w-screen bg-[#000000]">
-      <div className="flex items-center justify-end p-1 bg-[#000000] text-white shadow-md">
-        
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={handleExitRoom}
-            className="bg-red-500 hover:bg-red-600 text-white text-sm px-2 py-1 rounded-lg ml-2 cursor-pointer"
-          >
-            Exit Room
-          </button>
-        </div>
+      <div className="flex items-center justify-end p-1 bg-[#000000] text-white shadow-md space-x-4">
+        <button
+          onClick={handleRunCode}
+          className="bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm px-2 py-1 rounded-lg ml-2 cursor-pointer"
+        >
+          Run
+        </button>
+
+        <button
+          onClick={handleExitRoom}
+          className="bg-red-500 hover:bg-red-600 text-white text-sm px-2 py-1 rounded-lg ml-2 cursor-pointer"
+        >
+          Exit Room
+        </button>
       </div>
+
 
       <div className="flex-1 w-full h-full overflow-hidden">
         <Editor

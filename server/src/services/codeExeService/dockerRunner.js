@@ -1,8 +1,12 @@
 import Docker from "dockerode";
+import path from "path";
+
 const docker = new Docker();
 
-export const runCodeInSandbox = async (language, filePath) => {
-    let image, runCmd, workFile = `/tmp/${filePath.split("/").pop()}`;
+export const runCodeInSandbox = async (filePath, language) => {
+    let image, runCmd;
+    const fileName = path.basename(filePath);
+    const workFile = `/tmp/${fileName}`;
 
     switch (language) {
         case "cpp":
@@ -15,7 +19,9 @@ export const runCodeInSandbox = async (language, filePath) => {
             break;
         case "java":
             image = "openjdk:17";
-            runCmd = `javac ${workFile} && java -cp /tmp Main`;
+            // For Java, we need to extract class name from file
+            const className = fileName.replace('.java', '');
+            runCmd = `javac ${workFile} && java -cp /tmp ${className}`;
             break;
         case "javascript":
             image = "node:18";
@@ -25,29 +31,40 @@ export const runCodeInSandbox = async (language, filePath) => {
             throw new Error("Unsupported language");
     }
 
-    const container = await docker.createContainer({
-        Image: image,
-        Cmd: ["bash", "-c", runCmd],
-        HostConfig: {
-            Binds: [`${filePath}:${workFile}`]
-        },
-        WorkingDir: "/tmp",
-        Tty: true,
-        OpenStdin: true,
-        AttachStdin: true,
-        AttachStdout: true,
-        AttachStderr: true
-    });
+    // Get absolute path in native Windows format
+    const hostPath = path.resolve(filePath);
 
-    await container.start();
+    try {
+        const container = await docker.createContainer({
+            Image: image,
+            Cmd: ["bash", "-c", runCmd],
+            HostConfig: {
+                Binds: [`${hostPath}:${workFile}:ro`],
+                NetworkMode: "none"
+            },
+            WorkingDir: "/tmp",
+            Tty: false,
+            OpenStdin: false,
+            AttachStdout: true,
+            AttachStderr: true,
+            // Set execution timeout
+            Env: ["TIMEOUT=10"]
+        });
 
-    // attach to container output (real-time)
-    const stream = await container.attach({
-        stream: true,
-        stdin: true,
-        stdout: true,
-        stderr: true
-    });
+        await container.start();
 
-    return { container, stream };
+        // Get container logs
+        const stream = await container.logs({
+            stdout: true,
+            stderr: true,
+            follow: true,
+            timestamps: false
+        });
+
+        return { container, stream };
+
+    } catch (error) {
+        console.error("Docker container creation/start failed:", error);
+        throw new Error(`Failed to run code in sandbox: ${error.message}`);
+    }
 };
