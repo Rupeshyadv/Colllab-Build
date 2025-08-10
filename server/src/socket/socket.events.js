@@ -20,6 +20,7 @@ export const ClientToServerEvents = {
   // Code execution
   START_EXECUTION: 'start_execution',
   TERMINAL_INPUT: 'terminal_input',
+  CLEAR_TERMINAL: 'clear_terminal',
 
 };
 
@@ -48,6 +49,7 @@ export const ServerToClientEvents = {
   EXECUTION_STARTED: 'execution_started',
   EXECUTION_ENDED: 'execution_ended',
   TERMINAL_OUTPUT: 'terminal_output',
+  CLEAR_TERMINAL: 'clear_terminal',
 
   // Miscellaneous
   SOCKET_ERROR: 'socket_error',

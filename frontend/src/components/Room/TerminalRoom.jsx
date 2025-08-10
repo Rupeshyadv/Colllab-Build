@@ -13,8 +13,6 @@ function TerminalRoom() {
 
   const [terminalHeight, setTerminalHeight] = useState(400)
   const [isResizing, setIsResizing] = useState(false)
-  
-  // const [codeOutput, setCodeOutput] = useState('')
 
   const handleMouseDown = useCallback((e) => {
     e.preventDefault()
@@ -49,11 +47,19 @@ function TerminalRoom() {
         terminalInstanceRef.current.terminal.write(output)
       }
     }
+    
+    socket.on(ServerToClientEvents.CLEAR_TERMINAL, () => {
+      console.log("Clearing terminal output")
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.terminal.reset();
+      }
+    })
 
     socket.on(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
 
     return () => {
       socket.off(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
+      socket.off(ServerToClientEvents.CLEAR_TERMINAL)
     }
   }, [])
 

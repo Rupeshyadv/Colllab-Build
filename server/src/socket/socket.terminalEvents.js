@@ -56,4 +56,9 @@ export const registerTerminalEvents = (socket, io) => {
             }
         });
     });
+
+    // clear terminal output
+    socket.on(ClientToServerEvents.CLEAR_TERMINAL, ({ roomId }) => {
+        io.emit(ServerToClientEvents.CLEAR_TERMINAL);
+    });
 }

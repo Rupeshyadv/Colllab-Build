@@ -189,6 +189,10 @@ function EditorRoom() {
       code, 
       language: 'cpp' // or any other language you want to support
     } 
+
+    // clear terminal before running new code to get fresh output
+    socket.emit(ClientToServerEvents.CLEAR_TERMINAL, { roomId })
+
     socket.emit(ClientToServerEvents.START_EXECUTION, { roomId, codeData })
 
   }   
