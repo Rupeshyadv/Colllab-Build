@@ -13,56 +13,8 @@ function TerminalRoom() {
 
   const [terminalHeight, setTerminalHeight] = useState(400)
   const [isResizing, setIsResizing] = useState(false)
-
-  const handleMouseDown = useCallback((e) => {
-    e.preventDefault()
-    setIsResizing(true)
-
-    const startY = e.clientY
-    const startHeight = terminalHeight
-
-    const handleMouseMove = (e) => {
-      const deltaY = startY - e.clientY
-      const newHeight = Math.max(100, Math.min(800, startHeight + deltaY))
-      setTerminalHeight(newHeight)
-      // fit after next paint
-      requestAnimationFrame(() => terminalInstanceRef.current?.fitAddon.fit())
-    }
-
-    const handleMouseUp = () => {
-      setIsResizing(false)
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-      // final fit after resize ends
-      terminalInstanceRef.current?.fitAddon.fit()
-    }
-
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-  }, [terminalHeight])
-
-  useEffect(() => {
-    const handleTerminalOutput = ({ output }) => {
-      if (terminalInstanceRef.current) {
-        terminalInstanceRef.current.terminal.write(output)
-      }
-    }
-    
-    socket.on(ServerToClientEvents.CLEAR_TERMINAL, () => {
-      console.log("Clearing terminal output")
-      if (terminalInstanceRef.current) {
-        terminalInstanceRef.current.terminal.reset();
-      }
-    })
-
-    socket.on(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
-
-    return () => {
-      socket.off(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
-      socket.off(ServerToClientEvents.CLEAR_TERMINAL)
-    }
-  }, [])
-
+  
+  // Termianl UI initialization
   useEffect(() => {
     if (!terminalRef.current) return
 
@@ -103,25 +55,10 @@ function TerminalRoom() {
     terminal.open(terminalRef.current)
     fitAddon.fit()
 
-    // simple shell-like input
-    let currentLine = ''
     terminal.write('\x1b[1;33m$\x1b[0m ')
-    terminal.onData((data) => {
-      const code = data.charCodeAt(0)
-      if (code === 13) { // Enter
-        terminal.writeln('')
-        currentLine = ''
-        terminal.write('\x1b[1;33m$\x1b[0m ')
-      } else if (code === 127) { // Backspace
-        if (currentLine.length > 0) {
-          currentLine = currentLine.slice(0, -1)
-          terminal.write('\b \b')
-        }
-      } else if (code >= 32) { // printable
-        currentLine += data
-        terminal.write(data)
-      }
-    })
+    
+    // Adding terminal and fitaddon into terminalInstanceRef to handle input 
+    terminalInstanceRef.current = { terminal, fitAddon }
 
     const handleWindowResize = () => fitAddon.fit()
     window.addEventListener('resize', handleWindowResize)
@@ -134,6 +71,109 @@ function TerminalRoom() {
       terminalInstanceRef.current = null
     }
   }, [roomId])
+
+  const handleMouseDown = useCallback((e) => {
+    e.preventDefault()
+    setIsResizing(true)
+
+    const startY = e.clientY
+    const startHeight = terminalHeight
+
+    const handleMouseMove = (e) => {
+      const deltaY = startY - e.clientY
+      const newHeight = Math.max(100, Math.min(800, startHeight + deltaY))
+      setTerminalHeight(newHeight)
+      // fit after next paint
+      requestAnimationFrame(() => terminalInstanceRef.current?.fitAddon.fit())
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      // final fit after resize ends
+      terminalInstanceRef.current?.fitAddon.fit()
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }, [terminalHeight])
+
+  useEffect(() => {
+    const handleTerminalOutput = ({ output }) => {
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.terminal.write(output)
+      }
+    }
+
+    const hadleClearTerminal = () => {
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.terminal.reset()
+      } 
+    } 
+    
+    socket.on(ServerToClientEvents.CLEAR_TERMINAL, hadleClearTerminal)
+    socket.on(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
+
+    return () => {
+      socket.off(ServerToClientEvents.CLEAR_TERMINAL, hadleClearTerminal)
+      socket.off(ServerToClientEvents.TERMINAL_OUTPUT, handleTerminalOutput)
+    }
+  }, [])
+
+  // handle terminal input
+  useEffect(() => {
+    if (!terminalInstanceRef.current) return
+    const { terminal } = terminalInstanceRef.current
+    let currentInput = ''
+    let execEnded = true;
+    let isWaitingForInput = false; 
+
+    const handleInput = (data) => { 
+      if (execEnded) return; 
+
+      const code = data.charCodeAt(0);
+
+      if (code === 13) { // Enter
+        terminal.writeln('');
+        if (currentInput.trim()) {
+          socket.emit(ClientToServerEvents.TERMINAL_INPUT, { input: currentInput });
+          console.log("📤 Sending input to server:", currentInput); // Debug
+        }
+        currentInput = '';
+        isWaitingForInput = false;
+      } else if (code === 127) { // Backspace
+        if (currentInput.length > 0) {
+          currentInput = currentInput.slice(0, -1);
+          terminal.write('\b \b');
+        }
+      } else if (code >= 32) { // printable
+        currentInput += data;
+        terminal.write(data);
+      }
+    }
+
+    terminal.onData(handleInput);
+
+    // Listen for execution start
+    socket.on(ServerToClientEvents.EXECUTION_STARTED, () => {
+      console.log("Execution started");
+      execEnded = false; 
+    });
+
+    socket.on(ServerToClientEvents.EXECUTION_ENDED, () => {
+      execEnded = true;
+      console.log("Execution ended");
+      isWaitingForInput = false;
+      terminal.writeln("\r\n[Program finished]");
+      terminal.write('\x1b[1;33m$\x1b[0m ');
+    });
+
+    return () => {
+      socket.off(ServerToClientEvents.EXECUTION_STARTED);
+      socket.off(ServerToClientEvents.EXECUTION_ENDED);
+    }
+  }, [])
 
   return (
     <div className="flex flex-col bg-black">

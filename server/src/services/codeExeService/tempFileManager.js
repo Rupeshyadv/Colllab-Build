@@ -1,5 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
+import os from 'os' // Add this import
 import { ApiError } from '../../utils/ApiError.js';
 
 export const getFileNameWithExtension = (language) => {
@@ -18,21 +19,30 @@ export const getFileNameWithExtension = (language) => {
 }
 
 export const saveUserCode = async (code, language) => {
-    const TEMP_DIR = path.join(process.cwd(), 'temp')
-    
-    await fs.mkdir(TEMP_DIR, { recursive: true })
+    try {
+        // Use system temp directory instead of project temp
+        const TEMP_DIR = path.join(os.tmpdir(), 'code-executor');
+        
+        await fs.mkdir(TEMP_DIR, { recursive: true });
 
-    const fileNameWithExtension = getFileNameWithExtension(language)
-    const filePath = path.join(TEMP_DIR, `${Date.now()}-${Math.random().toString(36).slice(2)}-${fileNameWithExtension}`)
-    await fs.writeFile(filePath, code)
-
-    return filePath
+        const fileNameWithExtension = getFileNameWithExtension(language);
+        const filePath = path.join(TEMP_DIR, `${Date.now()}-${Math.random().toString(36).slice(2)}-${fileNameWithExtension}`);
+        
+        await fs.writeFile(filePath, code, 'utf8');
+        
+        // Verify file was created
+        const fileExists = await fs.access(filePath).then(() => true).catch(() => false);
+        
+        return filePath;
+    } catch (error) {
+        throw new ApiError(500, "Failed to save code file");
+    }
 }
 
 export const deleteUserCodeFile = async (filePath) => {
     try {
-        await fs.unlink(filePath)
+        await fs.unlink(filePath);
     } catch (err) {
-        console.error(`Error while deleting file: ${filePath}`, err.message)
+        console.error(`❌ Error while deleting file: ${filePath}`, err.message);
     }
 }

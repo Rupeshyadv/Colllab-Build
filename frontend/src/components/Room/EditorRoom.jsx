@@ -187,7 +187,7 @@ function EditorRoom() {
   const handleRunCode = () => {
     const codeData = {
       code, 
-      language: 'cpp' // or any other language you want to support
+      language: 'javascript' // or any other language you want to support
     } 
 
     // clear terminal before running new code to get fresh output

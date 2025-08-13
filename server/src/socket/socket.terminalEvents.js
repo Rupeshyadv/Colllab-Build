@@ -5,6 +5,7 @@ import { runCodeInSandbox } from "../services/codeExeService/dockerRunner.js";
 export const registerTerminalEvents = (socket, io) => {
     socket.on(ClientToServerEvents.START_EXECUTION, async ({ roomId, codeData }) => {
         const { code, language } = codeData
+        console.log("Starting code execution in room:", roomId, "Language:", language);
 
         // Save the user code to a temporary file
         const filePath = await saveUserCode(code, language)
@@ -15,18 +16,36 @@ export const registerTerminalEvents = (socket, io) => {
         }
 
         // Run the code in a Docker container
-        const { container, stream } = await runCodeInSandbox(filePath, language)
+        const { container, stdin, stdout, stderr } = await runCodeInSandbox(filePath, language)
+
+        io.to(roomId).emit(ServerToClientEvents.EXECUTION_STARTED, { roomId });
 
         // adding containerId,stream to socket for handling midway input
         socket.containerId = container?.id
-        socket.stdinStream = stream;
+        socket.stdinStream = stdin;
         
-        // pipe the output stream to the socket room
-        stream.on('data', (chunk) => {
+        // Add error handlers for streams
+        stdout.on('error', (error) => {
+            console.error("Stdout stream error:", error);
+        });
+        stderr.on('error', (error) => {
+            console.error("Stderr stream error:", error);
+        });
+        stdin.on('error', (error) => {
+            console.error("Stdin stream error:", error);
+        });
+
+        stdout.on('data', (chunk) => {
             const output = chunk.toString();
-            console.log("Terminal output:", output);
+            console.log("Terminal output:", output)
             io.to(roomId).emit(ServerToClientEvents.TERMINAL_OUTPUT, { output });
         });
+        stderr.on('data', (chunk) => {
+            const errorOutput = chunk.toString();
+            console.error("Terminal error output:", errorOutput);
+            io.to(roomId).emit(ServerToClientEvents.TERMINAL_OUTPUT, { output: errorOutput });
+        });
+        
 
         // when the program fineshes, clean up
         container.wait()
@@ -34,9 +53,13 @@ export const registerTerminalEvents = (socket, io) => {
             await deleteUserCodeFile(filePath);
             container.remove();
 
-            socket.stdinStream = null; // Clear stdin stream reference
+            if (socket.stdinStream) {
+                socket.stdinStream.destroy();
+            }
+
             socket.containerId = null; // Clear container ID reference
-            socket.to(roomId).emit(ServerToClientEvents.EXECUTION_ENDED);
+            socket.stdinStream = null; // Clear stdin stream reference
+            io.to(roomId).emit(ServerToClientEvents.EXECUTION_ENDED);
         }).catch(err => {
             console.error("Error during container execution:", err);
             socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Execution error." });
@@ -50,6 +73,7 @@ export const registerTerminalEvents = (socket, io) => {
         }
 
         socket.stdinStream.write(input + '\n', (err) => {
+            console.log("Input sent to container:", input);
             if (err) {
                 console.error("Error writing to stdin stream:", err);
                 socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Failed to send input." });
@@ -59,6 +83,6 @@ export const registerTerminalEvents = (socket, io) => {
 
     // clear terminal output
     socket.on(ClientToServerEvents.CLEAR_TERMINAL, ({ roomId }) => {
-        io.emit(ServerToClientEvents.CLEAR_TERMINAL);
+        io.to(roomId).emit(ServerToClientEvents.CLEAR_TERMINAL);
     });
 }
