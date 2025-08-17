@@ -138,7 +138,6 @@ function TerminalRoom() {
         terminal.writeln('');
         if (currentInput.trim()) {
           socket.emit(ClientToServerEvents.TERMINAL_INPUT, { input: currentInput });
-          console.log("📤 Sending input to server:", currentInput); // Debug
         }
         currentInput = '';
         isWaitingForInput = false;

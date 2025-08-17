@@ -1,5 +1,5 @@
 import { ClientToServerEvents, ServerToClientEvents } from "./socket.events.js";
-import { saveUserCode, deleteUserCodeFile } from "../services/codeExeService/tempFileManager.js";
+import { saveUserCode } from "../services/codeExeService/tempFileManager.js";
 import { runCodeInSandbox } from "../services/codeExeService/dockerRunner.js";
 
 export const registerTerminalEvents = (socket, io) => {
@@ -16,7 +16,7 @@ export const registerTerminalEvents = (socket, io) => {
         }
 
         // Run the code in a Docker container
-        const { container, stdin, stdout, stderr } = await runCodeInSandbox(filePath, language)
+        const { container, stdin, stdout, stderr, execPromise, cleanup } = await runCodeInSandbox(filePath, language)
 
         io.to(roomId).emit(ServerToClientEvents.EXECUTION_STARTED, { roomId });
 
@@ -37,33 +37,22 @@ export const registerTerminalEvents = (socket, io) => {
 
         stdout.on('data', (chunk) => {
             const output = chunk.toString();
-            console.log("Terminal output:", output)
             io.to(roomId).emit(ServerToClientEvents.TERMINAL_OUTPUT, { output });
         });
         stderr.on('data', (chunk) => {
             const errorOutput = chunk.toString();
-            console.error("Terminal error output:", errorOutput);
             io.to(roomId).emit(ServerToClientEvents.TERMINAL_OUTPUT, { output: errorOutput });
         });
         
 
         // when the program fineshes, clean up
-        container.wait()
-        .then(async () => {
-            await deleteUserCodeFile(filePath);
-            container.remove();
-
-            if (socket.stdinStream) {
-                socket.stdinStream.destroy();
-            }
-
-            socket.containerId = null; // Clear container ID reference
-            socket.stdinStream = null; // Clear stdin stream reference
-            io.to(roomId).emit(ServerToClientEvents.EXECUTION_ENDED);
-        }).catch(err => {
-            console.error("Error during container execution:", err);
-            socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Execution error." });
+        execPromise.then(() => {
+            io.to(roomId).emit(ServerToClientEvents.EXECUTION_ENDED, { roomId });
+        }).catch((err) => {
+            console.error("Error during execution:", err);
+            socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Execution failed." });
         });
+        
     })
 
     socket.on(ClientToServerEvents.TERMINAL_INPUT, async ({ input }) => {
@@ -73,7 +62,6 @@ export const registerTerminalEvents = (socket, io) => {
         }
 
         socket.stdinStream.write(input + '\n', (err) => {
-            console.log("Input sent to container:", input);
             if (err) {
                 console.error("Error writing to stdin stream:", err);
                 socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Failed to send input." });

@@ -17,6 +17,10 @@ function EditorRoom() {
   const { userData } = useSelector((state) => state.auth) 
   const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
   const navigate = useNavigate()
+  const { language } = useSelector((state) => {
+    const room = state.room.rooms.find(r => r.id === roomId);
+    return room || { language: 'javascript' };
+  })
 
   const editorRef = useRef();
   const cursorRef = useRef();
@@ -187,7 +191,7 @@ function EditorRoom() {
   const handleRunCode = () => {
     const codeData = {
       code, 
-      language: 'javascript' // or any other language you want to support
+      language, 
     } 
 
     // clear terminal before running new code to get fresh output

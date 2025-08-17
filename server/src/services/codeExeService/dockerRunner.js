@@ -1,6 +1,7 @@
 import Docker from "dockerode";
 import path from "path";
 import { PassThrough } from "stream";
+import { deleteUserCodeFile } from "./tempFileManager.js";
 
 const docker = new Docker();
 
@@ -35,50 +36,84 @@ export const runCodeInSandbox = async (filePath, language) => {
     // Get absolute path in native Windows format
     const hostPath = path.resolve(filePath);
 
+    
     try {
+        // Create container but don't run the command immediately
         const container = await docker.createContainer({
             Image: image,
-            Cmd: ["bash", "-c", runCmd],
+            Cmd: ["sleep", "300"], // Keep container alive
             HostConfig: {
                 Binds: [`${hostPath}:${workFile}:ro`],
-                NetworkMode: "none"
+                NetworkMode: "none",
             },
             WorkingDir: "/tmp",
             Tty: true,
             OpenStdin: true,
-            StdinOnce: false,
-            AttachStdin: true,
+        });
+        
+        await container.start();
+        
+        // Execute the command inside the running container
+        const shell = image.includes("alpine") ? "sh" : "bash";
+        const exec = await container.exec({
+            Cmd: [shell, "-c", runCmd],
+            stdinOnce: false,
             AttachStdout: true,
             AttachStderr: true,
-            // Set execution timeout
-            Env: ["TIMEOUT=10"]
+            AttachStdin: true,
+            Tty: true,
         });
 
-        await container.start();
-
-        // Get container logs
-        const attachStream = await container.attach({
-            stream: true,
+        const stream = await exec.start({
+            hijack: true,
             stdin: true,
-            stdout: true,
-            stderr: true,
         });
 
-        // separate stdout and stderr streams
         const stdoutStream = new PassThrough();
         const stderrStream = new PassThrough();
+        
+        container.modem.demuxStream(stream, stdoutStream, stderrStream);
 
-        container.modem.demuxStream(attachStream, stdoutStream, stderrStream);
+        // Full cleanup function
+        const fullCleanup = async () => {
+            try {
+                await container.kill();
+                await container.remove()
+                
+                await deleteUserCodeFile(filePath)
+
+            } catch (err) {
+                console.error("Error during full cleanup:", err)
+            }
+        }
+
+        // Monitor exec process
+        const execPromise = (async () => {
+            const checkExecStatus = async () => {
+                const info = await exec.inspect()
+                if (!info.Running) {
+                    await fullCleanup()
+                    return true
+                }
+                return false
+            };
+
+            while (true) {
+                if (await checkExecStatus()) break;
+                await new Promise(resolve => setTimeout(resolve, 100))
+            }
+        })();
 
         return { 
             container,
-            stdin: attachStream,
+            stdin: stream,
             stdout: stdoutStream,
             stderr: stderrStream,
+            execPromise,
+            cleanup: fullCleanup,
         };
-
     } catch (error) {
-        console.error("Docker container creation/start failed:", error);
-        throw new Error(`Failed to run code in sandbox: ${error.message}`);
+        console.error("❌ Exec approach failed:", error);
+        throw error;
     }
 };

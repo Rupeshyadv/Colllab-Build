@@ -1,6 +1,6 @@
 import fs from 'fs/promises'
 import path from 'path'
-import os from 'os' // Add this import
+import os from 'os' 
 import { ApiError } from '../../utils/ApiError.js';
 
 export const getFileNameWithExtension = (language) => {
@@ -20,7 +20,6 @@ export const getFileNameWithExtension = (language) => {
 
 export const saveUserCode = async (code, language) => {
     try {
-        // Use system temp directory instead of project temp
         const TEMP_DIR = path.join(os.tmpdir(), 'code-executor');
         
         await fs.mkdir(TEMP_DIR, { recursive: true });
