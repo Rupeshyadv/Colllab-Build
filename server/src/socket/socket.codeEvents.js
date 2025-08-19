@@ -1,4 +1,5 @@
 import { ClientToServerEvents, ServerToClientEvents } from "./socket.events.js";
+import { clientRedis } from "../services/RedisService/clientRedis.js";
 const roomUsers = {}  // roomId -> set([userIds])
 const usersCursors = {}  // userId -> { roomId -> userId: cursor }
 
@@ -20,14 +21,18 @@ export const registerCodeEvents = (socket, io) => {
     }
   })
 
-  // code change event
-  socket.on(ClientToServerEvents.CODE_CHANGE, ({ roomId, code, userId }) => {
+  // code change event, also save in redis 
+  socket.on(ClientToServerEvents.CODE_CHANGE, async ({ roomId, code, userId }) => {
     socket.to(roomId).emit(ServerToClientEvents.CODE_UPDATE, 
       { 
         code, 
         userId,
       }
     )
+
+    // cache the code in Redis
+    await clientRedis.set(`room:${roomId}:code`, code)
+    await clientRedis.set(`room:${roomId}:dirty`, 1)
   })
 
   // leave a room

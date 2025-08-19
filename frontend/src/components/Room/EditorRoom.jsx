@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { setEditorCode } from '../../store/Room/editorSlice.js'
-import { getSessionCode, updateSessionCode } from '../../api/sessionRoomApi'
+import { getSessionCode } from '../../api/sessionRoomApi'
 import { debounce } from 'lodash'
 import LZString from 'lz-string'
 import { toast } from 'react-hot-toast'
@@ -18,6 +18,7 @@ function EditorRoom() {
   const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
   const navigate = useNavigate()
   const language = useSelector((state) => state.room.rooms[roomId]?.language || 'javascript')
+  console.log(language)
 
   const editorRef = useRef();
   const cursorRef = useRef();
@@ -84,7 +85,6 @@ function EditorRoom() {
       socket.off(ServerToClientEvents.CURSOR_UPDATE, handleRemoteCursorUpdate);
     };
   }); 
-
 
   // Socket join-room connection 
   useEffect(() => {
@@ -172,11 +172,9 @@ function EditorRoom() {
 
       dispatch(setEditorCode(payload))
 
-      // Broadcast the code change to other users in the room
+      // Broadcast the code change to other users in the room and cache code in Redis
       socket.emit(ClientToServerEvents.CODE_CHANGE, payload)
-
-      const compressedCode = LZString.compressToUTF16(value)
-      await updateSessionCode(roomId, compressedCode)
+      
     }, 2000)
   }, [roomId, dispatch])
 

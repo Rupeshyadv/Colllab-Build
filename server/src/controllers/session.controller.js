@@ -213,25 +213,20 @@ export const getCode = async (req, res) => {
     }
 }
 
-export const patchCode = async (req, res) => {
+export const patchCode = async (sessionId, code) => {
     try {
-        const {sessionId} = req.params  
-        const {code} = req.body
-
-        const updatedCode = await prisma.session.update({
+        const updatedSession = await prisma.session.update({
             where: {
                 id: sessionId
             },
             data: {
-                code: code,
-            },
-            select: {
-                code: true
+                code: code
             }
         })
-        return res.status(200).json(updatedCode);
+
+        return updatedSession;
     } catch (error) {
-        console.error('Error updating code:', error);
-        return res.status(500).json({ error: 'Internal Server Error' });
+        console.error('Error updating session code:', error);
+        throw new Error('Failed to update session code');
     }
 }
