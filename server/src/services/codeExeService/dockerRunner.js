@@ -6,6 +6,7 @@ import { deleteUserCodeFile } from "./tempFileManager.js";
 const docker = new Docker();
 
 export const runCodeInSandbox = async (filePath, language) => {
+    console.log(language)
     let image, runCmd;
     const fileName = path.basename(filePath);
     const workFile = `/tmp/${fileName}`;

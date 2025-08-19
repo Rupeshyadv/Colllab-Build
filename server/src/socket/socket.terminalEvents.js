@@ -5,7 +5,6 @@ import { runCodeInSandbox } from "../services/codeExeService/dockerRunner.js";
 export const registerTerminalEvents = (socket, io) => {
     socket.on(ClientToServerEvents.START_EXECUTION, async ({ roomId, codeData }) => {
         const { code, language } = codeData
-        console.log("Starting code execution in room:", roomId, "Language:", language);
 
         // Save the user code to a temporary file
         const filePath = await saveUserCode(code, language)

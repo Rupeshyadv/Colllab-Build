@@ -34,6 +34,7 @@ export const saveUserCode = async (code, language) => {
         
         return filePath;
     } catch (error) {
+        console.error("❌ Error in saveUserCode:", error);
         throw new ApiError(500, "Failed to save code file");
     }
 }

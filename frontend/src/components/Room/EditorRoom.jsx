@@ -17,10 +17,7 @@ function EditorRoom() {
   const { userData } = useSelector((state) => state.auth) 
   const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
   const navigate = useNavigate()
-  const { language } = useSelector((state) => {
-    const room = state.room.rooms.find(r => r.id === roomId);
-    return room || { language: 'javascript' };
-  })
+  const language = useSelector((state) => state.room.rooms[roomId]?.language || 'javascript')
 
   const editorRef = useRef();
   const cursorRef = useRef();
@@ -218,7 +215,6 @@ function EditorRoom() {
           Exit Room
         </button>
       </div>
-
 
       <div className="flex-1 w-full h-full overflow-hidden">
         <Editor
