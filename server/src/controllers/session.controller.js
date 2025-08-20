@@ -1,4 +1,5 @@
 import { prisma } from '../db/prisma.client.js'
+import { clientRedis } from '../services/RedisService/clientRedis.js';
 
 export const createSession = async (req, res) => {
     try {
@@ -195,8 +196,15 @@ export const joinSession = async (req, res) => {
 } 
 
 export const getCode = async (req, res) => {
+    const {sessionId} = req.params
+    
     try {
-        const {sessionId} = req.params
+        // first check Redis cache
+        const redisCode = await clientRedis.get(`room:${sessionId}:code`)
+        if (redisCode) {
+            return res.status(200).json({ code: redisCode });
+        }
+
         const code = await prisma.session.findUnique({
             where: {
                 id: sessionId
@@ -205,6 +213,11 @@ export const getCode = async (req, res) => {
                 code: true
             }
         })
+        
+        console.log('Code fetched from DB:', code)
+
+        // put code in Redis cache
+        if (code) await clientRedis.set(`room:${sessionId}:code`, code.code)
         
         return res.status(200).json(code);
     } catch (error) {
