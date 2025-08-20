@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { setEditorCode } from '../../store/Room/editorSlice.js'
 import { getSessionCode } from '../../api/sessionRoomApi'
 import { debounce } from 'lodash'
-import LZString from 'lz-string'
 import { toast } from 'react-hot-toast'
 import { socket } from '../../services/socket.js'
 import { ClientToServerEvents, ServerToClientEvents } from '../../../../server/src/socket/socket.events.js'
@@ -13,12 +12,10 @@ import TerminalRoom from './TerminalRoom.jsx'
 
 function EditorRoom() {
   const dispatch = useDispatch()
-  const { roomId } = useParams()  
+  const { roomId, language } = useParams()  
   const { userData } = useSelector((state) => state.auth) 
   const code = useSelector((state) => state.editor.roomCodes[roomId] || '')
   const navigate = useNavigate()
-  const language = useSelector((state) => state.room.rooms[roomId]?.language || 'javascript')
-  console.log(language)
 
   const editorRef = useRef();
   const cursorRef = useRef();
@@ -152,9 +149,8 @@ function EditorRoom() {
   useEffect(() => {
     const fetchSessionCode = async () => {
       try {
-        const { code: compressedCode } = await getSessionCode(roomId)
-        const decompressedCode = LZString.decompressFromUTF16(compressedCode || '')
-        dispatch(setEditorCode({ roomId, code: decompressedCode }))
+        const { code } = await getSessionCode(roomId)
+        dispatch(setEditorCode({ roomId, code }))
       } catch (err) {
         console.error('Failed to fetch code:', err)
       }

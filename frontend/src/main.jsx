@@ -50,7 +50,7 @@ createRoot(document.getElementById('root')).render(
             }
           />
           <Route 
-            path='/room/:roomId'
+            path='/room/:roomId/:language'
             element={
               <PrivateRoute>
                 <RoomPage />

@@ -122,7 +122,7 @@ const DashboardPage = () => {
                   </span>
                   <button 
                     className="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200 cursor-pointer"
-                    onClick={() => navigate(`/room/${room.id}`)}
+                    onClick={() => navigate(`/room/${room.id}/${room.language}`)}
                   >
                     Enter Room →
                   </button>
