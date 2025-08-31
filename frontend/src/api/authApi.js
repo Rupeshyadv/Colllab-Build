@@ -12,8 +12,8 @@ export const loginApi = async (email, username, password) => {
         const response = await API.post('/users/login', formData)
         return response?.data
     } catch (error) {
-        console.error('Login error:', error.response?.data || error.message);
-        throw error;
+        console.error('Login error:', error.response?.data || error.message)
+        throw error
     }
 }
 
@@ -29,8 +29,8 @@ export const registerApi = async (name=null, username, email, password) => {
         const response = await API.post('/users/register', formData)
         return response?.data
     } catch (error) {
-        console.error('Login error:', error.response?.data || error.message);
-        throw error;
+        console.error('Login error:', error.response?.data || error.message)
+        throw error
     }
 }
 export const logoutApi = async () =>{
@@ -38,8 +38,8 @@ export const logoutApi = async () =>{
         const response = await API.post('/users/logout')
         return response?.data
     } catch (error) {
-        console.error('Logout error:', error.response?.data || error.message);
-        throw error;
+        console.error('Logout error:', error.response?.data || error.message)
+        throw error
     }
 }
 
@@ -48,7 +48,23 @@ export const isUserAuthenticatedApi = async () => {
         const response = await API.get('/users/auth-check')
         return response?.data
     } catch (error) {
-        console.error('Login error:', error.response?.data || error.message);
-        throw error;
+        console.error('Login error:', error.response?.data || error.message)
+        throw error
+    }
+}
+
+export const editUserProfileApi = async (username, profileImg) => {
+    const formData = new FormData()
+    if (username) formData.append('username', username)
+    if (profileImg) formData.append('profileImg', profileImg)
+
+    try {
+        const response = await API.put('/users/profile/edit-profile', formData, {
+            withCredentials: true,
+        })
+        return response?.data
+    } catch (error) {
+        console.error('Edit profile error:', error.response?.data || error.message)
+        throw error
     }
 }

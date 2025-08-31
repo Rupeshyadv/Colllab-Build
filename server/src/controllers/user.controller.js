@@ -153,11 +153,44 @@ export const logoutUser = async (req, res) => {
     )
 }
 
-const eidtUserAvatar = async (req, res) => {
+export const eidtUserProfile = async (req, res) => {
   const userId = req.user?.id;
   if (!userId) {
     return res.status(400).json({ message: "User ID not found" });
   }
 
-    
+  const { username } = req.body
+  const file = req.file
+  let cloudinaryUrl = null;
+
+  try {
+    if (file?.path)
+      cloudinaryUrl = await upload_on_cloudinary(file.path)
+
+    // push into db
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: username || undefined,
+        avatarUrl: cloudinaryUrl?.secure_url || undefined,
+      }
+    })
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        avatarUrl: updatedUser.avatarUrl,
+        createdAt: updatedUser.created_at,
+        updatedAt: updatedUser.updated_at,
+      }
+    })
+  } catch (error) {
+    console.error("Error in eidtUserProfile:", error)
+    return res.status(500).json({ message: "Error updating profile" })
+  }
+
 }
