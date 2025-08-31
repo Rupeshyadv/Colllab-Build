@@ -1,9 +1,10 @@
 import {API} from './axiosInstance.js'
 
-export const loginApi = async (email, password) => {
+export const loginApi = async (email, username, password) => {
 
     const formData = {
         email,
+        username,
         password
     }
 
@@ -16,9 +17,10 @@ export const loginApi = async (email, password) => {
     }
 }
 
-export const registerApi = async (name=null, email, password) => {
+export const registerApi = async (name=null, username, email, password) => {
     const formData = {
         name,
+        username,
         email,
         password
     }

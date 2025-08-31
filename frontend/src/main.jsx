@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/index.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { DashboardPage, AuthPage, LandingPage, CreateRoomPage, RoomPage } from './pages/Pages.js'
+import { ProfileEditor } from './components/UserProfile/ProfileEditor.jsx'
 import Spinner from './components/Spinner.jsx'
 import { Provider } from 'react-redux';
 import { PublicRoute, PrivateRoute } from './routes/routes.js'
@@ -54,6 +55,14 @@ createRoot(document.getElementById('root')).render(
             element={
               <PrivateRoute>
                 <RoomPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path='/users/:username'
+            element={
+              <PrivateRoute>
+                <ProfileEditor />
               </PrivateRoute>
             }
           />

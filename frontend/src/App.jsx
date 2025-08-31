@@ -1,4 +1,3 @@
-import AuthPage from "./pages/AuthPage"
 import { DashboardPage, LandingPage } from './pages/Pages.js'
 
 import { useSelector } from "react-redux"

@@ -4,12 +4,13 @@ import Logo from '../../assets/Logo.png';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Logout as LogoutBtn } from '../Auth/Logout'
+import { ProfileCircle } from '../UserProfile/ProfileCircle';
 
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);   // For mobile view
 
-  const {isAuthenticated } = useSelector((state) => state.auth)
+  const { isAuthenticated } = useSelector((state) => state.auth)
 
   return (
     <header className="bg-[#000000] backdrop-blur-sm border-b border-[#010c07] sticky top-0 z-50">
@@ -57,7 +58,7 @@ const Header = () => {
           }
 
           {
-            isAuthenticated && <LogoutBtn />
+            isAuthenticated && <ProfileCircle />
           }
 
           {/* Mobile menu button */}
@@ -99,7 +100,7 @@ const Header = () => {
               }
 
             {
-              isAuthenticated && <LogoutBtn />
+              isAuthenticated && <ProfileCircle />
             }
             </div>
           </div>

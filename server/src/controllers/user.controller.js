@@ -1,6 +1,6 @@
-import { access } from 'fs'
 import { prisma } from '../db/prisma.client.js'
 import { ApiError } from '../utils/ApiError.js'
+import { upload_on_cloudinary } from '../services/fileUploadService/cloudinary.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
@@ -35,9 +35,9 @@ export const generateAccessAndRefreshTokens = async (user) => {
 }
 
 export const registerUser = async (req, res) => {
-  const { name, email, password } = req.body
+  const { name, username, email, password } = req.body
 
-  if(!email.trim() || !password.trim()) 
+  if(!email.trim() || !password.trim() || !username.trim()) 
     throw new ApiError(400,  'All fields are required')
 
   const existingUser = await prisma.user.findUnique({
@@ -53,6 +53,7 @@ export const registerUser = async (req, res) => {
   const user = await prisma.user.create({
     data: {
       name,
+      username,
       email,
       hashedPassword
     }
@@ -62,7 +63,8 @@ export const registerUser = async (req, res) => {
     message: 'User registered successfully',
     user: {
         id: user.id,
-        name: user.name,        
+        name: user.name,    
+        username: user.username,    
         email: user.email,
         createdAt: user.created_at,
         updatedAt: user.updated_at, 
@@ -71,9 +73,9 @@ export const registerUser = async (req, res) => {
 }
 
 export const loginUser = async (req, res) => {
-  const { email, password } = req.body
+  const { email, username, password } = req.body
 
-  if(!email.trim() || !password.trim()) 
+  if(!email.trim() || !password.trim() || !username.trim()) 
     throw new ApiError(400, 'Email/Username and password are required')
 
   const user = await prisma.user.findUnique({
@@ -107,6 +109,7 @@ export const loginUser = async (req, res) => {
         user: {
           id: user.id,
           name: user.name,
+          username: user.username,
           email: user.email,
           createdAt: user.created_at,
           updatedAt: user.updated_at,
@@ -148,4 +151,13 @@ export const logoutUser = async (req, res) => {
         }
       }
     )
+}
+
+const eidtUserAvatar = async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(400).json({ message: "User ID not found" });
+  }
+
+    
 }

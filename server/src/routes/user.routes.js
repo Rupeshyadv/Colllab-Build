@@ -9,8 +9,8 @@ userRouter.route("/login").post(loginUser)
 
 // Secure routes
 userRouter.route("/logout").post(authMiddleware, logoutUser)
-
 userRouter.route("/auth-check").get(authMiddleware, (req, res) => res.sendStatus(200))
+userRouter.route("/profile/edit-avatar").post(authMiddleware, (req, res) => {})
 
 
 export { userRouter }

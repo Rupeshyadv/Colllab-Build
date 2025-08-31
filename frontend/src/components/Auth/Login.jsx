@@ -11,6 +11,7 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
   })
@@ -30,7 +31,7 @@ export function Login() {
     // SignIn 
     if(isLogin) {
         try {
-            const userData = await loginApi(formData.email, formData.password)
+            const userData = await loginApi(formData.email, formData.username, formData.password)
 
             if(userData) {
                 dispatch(authLogin(userData))
@@ -45,7 +46,7 @@ export function Login() {
     // Sign-Up
     else {
         try {
-            const userData = await registerApi(formData.name, formData.email, formData.password)
+            const userData = await registerApi(formData.name, formData.username, formData.email, formData.password)
 
             if(userData) {
                 dispatch(authRegister(userData))
@@ -131,6 +132,25 @@ export function Login() {
                         )}
 
                             {/* Sign-In & Sign-Up both */}
+                        <div className="space-y-2">
+                            <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+                                Username
+                            </label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    id="username"
+                                    name="username"
+                                    value={formData.username}
+                                    onChange={handleInputChange}
+                                    className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                                    placeholder="Enter your username"
+                                    required={true}
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <label htmlFor="email" className="block text-sm font-medium text-gray-300">
                                 Email Address

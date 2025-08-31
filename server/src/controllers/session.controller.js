@@ -202,10 +202,10 @@ export const getCode = async (req, res) => {
         // first check Redis cache
         const redisCode = await clientRedis.get(`room:${sessionId}:code`)
         if (redisCode) {
-            return res.status(200).json({ code: redisCode });
+            return res.status(200).json({ code: redisCode, source: 'redis' });
         }
 
-        const code = await prisma.session.findUnique({
+        const DBcode = await prisma.session.findUnique({
             where: {
                 id: sessionId
             },
@@ -213,13 +213,13 @@ export const getCode = async (req, res) => {
                 code: true
             }
         })
-        
-        console.log('Code fetched from DB:', code)
+
+        const code = DBcode.code || "";
 
         // put code in Redis cache
-        if (code) await clientRedis.set(`room:${sessionId}:code`, code.code)
+        if (code) await clientRedis.set(`room:${sessionId}:code`, code)
         
-        return res.status(200).json(code);
+        return res.status(200).json({ code, source: 'database' });
     } catch (error) {
         console.error('Error fetching code:', error);
         return res.status(500).json({ error: 'Internal Server Error' });
