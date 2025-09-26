@@ -57,10 +57,10 @@ export function ProfileEditor() {
     const navigate = useNavigate()
     const handleSaveChanges = async () => {
         try {
-            await editUserProfileApi(currUsername, profileImg)
+            const response = await editUserProfileApi(currUsername, profileImg)
             const payload = {
                 user: {
-                    avatarUrl: URL.createObjectURL(profileImg) || null,
+                    avatarUrl: profileImg instanceof File ? URL.createObjectURL(profileImg) : response?.user?.avatarUrl || null,
                     username: currUsername,
                 }
             }
