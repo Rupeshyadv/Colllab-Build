@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import redis 
+from model_logic import run_model
 
 app = FastAPI()
 
@@ -22,7 +23,10 @@ def get_code(req: Help_req):
     if code is None:
         return {"error": "No code found for the given roomId"}
     
+    model_response = run_model(req.query, code.decode('utf-8'))
+    
     return {
         "roomId": roomId,
-        "code": code
+        "code": code.decode('utf-8'),
+        "response": model_response
     }
