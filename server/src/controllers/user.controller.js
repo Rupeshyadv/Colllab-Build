@@ -3,6 +3,7 @@ import { ApiError } from '../utils/ApiError.js'
 import { upload_on_cloudinary } from '../services/fileUploadService/cloudinary.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import { google } from 'googleapis'
 
 export const generateAccessAndRefreshTokens = async (user) => {
   try {
@@ -32,6 +33,98 @@ export const generateAccessAndRefreshTokens = async (user) => {
   } catch (error) {
     throw new ApiError(500, 'Error generating tokens')
   }
+}
+
+const oauth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET,
+  process.env.GOOGLE_REDIRECT_URI
+)
+
+// this func gets called when user clicks on "Login with Google" button
+export const getGoogleAuthURL = (req, res) => {
+  const scopes = ['profile', 'email']
+
+  const url = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes,
+  })
+
+  return res.status(200).json({ url })
+}
+
+// this func gets called by google 
+export const googleOAuthCallback = async (req, res) => {
+  const code = req.query.code
+  if (!code) {
+    throw new ApiError(400, 'Authorization code not provided')
+  }
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code)
+    oauth2Client.setCredentials(tokens)
+    
+    const oauth2 = google.oauth2({
+      version: 'v2',
+      auth: oauth2Client,
+    })
+
+    const { data } = await oauth2.userinfo.get()
+
+    const { id, email, name, picture } = data
+    
+    // check if user exists by googleId
+    let user = await prisma.user.findUnique({
+      where: { id }
+    })
+    
+    // if not, check if user exists by email
+    if (!user) {
+      user = await prisma.user.findUnique({
+        where: { email }
+      })
+
+      // if user exists with email, update googleId and provider
+      if (user) {
+        user = await prisma.user.update({
+          where: { email },
+          data: {
+            googleId: id,
+            provider: 'google',
+          }
+        })
+      }
+      // if not, create new user
+      else {
+        user = await prisma.user.create({
+          data: {
+            name,
+            username: email.split('@')[0],
+            email,
+            googleId: id,
+            provider: 'google',
+          }
+        })
+      }
+    }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user)
+
+    const options = {
+      httpOnly: true,
+      maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+    }
+
+    res.status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+
+    res.redirect('http://localhost:5173/dashboard') 
+  } catch (error) {
+    console.error('Error during Google OAuth callback:', error)
+    throw new ApiError(500, 'Error during Google OAuth process')
+  }
+
 }
 
 export const registerUser = async (req, res) => {
@@ -105,15 +198,15 @@ export const loginUser = async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json({
-        message: "login successful",
-        user: {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          createdAt: user.created_at,
-          updatedAt: user.updated_at,
-        }
+      message: "login successful",
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at,
+      }
     })
 }
 

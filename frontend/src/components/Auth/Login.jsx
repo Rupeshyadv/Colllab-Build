@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Github, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import Logo from '../../assets/Logo.png'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux';
-import { loginApi, registerApi } from '../../api/authApi.js'
+import { loginApi, registerApi, getGoogleOAuthUrlApi } from '../../api/authApi.js'
 import { login as authLogin, register as authRegister} from '../../store/authSlice.js'
 
 export function Login() {
@@ -54,6 +54,20 @@ export function Login() {
         } catch (error) {
             console.error(error)
         }
+    }
+
+  }
+
+  const handleGoogleAuthSubmit = async () => {
+      try {
+        const response = await getGoogleOAuthUrlApi()
+        const googleAuthURL = response?.url
+
+        if(googleAuthURL) {
+            window.location.href = googleAuthURL
+        }
+    } catch (error) {
+        console.error('Google OAuth error:', error)
     }
 
   }
@@ -228,9 +242,9 @@ export function Login() {
                         <button
                             type="button"
                             className="w-full flex items-center justify-center space-x-2 bg-gray-700/50 text-white py-3 px-4 rounded-lg border border-gray-600 hover:bg-gray-600/50 transition-all duration-200 cursor-pointer"
+                            onClick={handleGoogleAuthSubmit}
                         >
-                            <Github className="h-5 w-5" />
-                            <span>Continue with GitHub</span>
+                            <span>Continue with Google</span>
                         </button>
                     </form>
 

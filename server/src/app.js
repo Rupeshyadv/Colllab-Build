@@ -37,8 +37,8 @@ app.get("/", (req, res) => {
 import { userRouter } from './routes/user.routes.js';
 import { sessionRouter } from './routes/session.routes.js';
  
-app.use("/api/v1/users", userRouter)
-app.use("/api/v1/sessions", sessionRouter)
+app.use("/api/users", userRouter)
+app.use("/api/sessions", sessionRouter)
 
 initializeSocketIO(io)
 startCodeFlush()

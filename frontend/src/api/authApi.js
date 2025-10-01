@@ -68,3 +68,14 @@ export const editUserProfileApi = async (username, profileImg) => {
         throw error
     }
 }
+
+export const getGoogleOAuthUrlApi = async () => { 
+    try {
+        const response_url = await API.get('/users/auth/google/url')
+
+        return response_url?.data
+    } catch (error) {
+        console.error('Google OAuth URL error:', error.response?.data || error.message)
+        throw error
+    }
+}

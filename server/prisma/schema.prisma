@@ -18,9 +18,14 @@ model User {
   name            String?
   username        String        @unique
   email           String        @unique
-  hashedPassword  String
+  hashedPassword  String?
   avatarUrl       String?
   refreshToken    String?
+
+  // oauth fields
+  googleId        String?       @unique
+  provider        String?       
+  
   created_at      DateTime      @default(now())
   updated_at      DateTime      @updatedAt
   participants    Participant[]
