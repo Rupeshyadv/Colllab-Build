@@ -119,7 +119,7 @@ export const googleOAuthCallback = async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
 
-    res.redirect('http://localhost:5173/dashboard') 
+    res.redirect('https://colllab-build.onrender.com/dashboard') 
   } catch (error) {
     console.error('Error during Google OAuth callback:', error)
     throw new ApiError(500, 'Error during Google OAuth process')

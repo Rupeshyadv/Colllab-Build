@@ -11,11 +11,12 @@ import { PublicRoute, PrivateRoute } from "./routes/routes.js";
 function App() {
   const dispatch = useDispatch();
 
+
   useEffect(() => {
     const checkAuth = async () => {
       console.log("Checking authentication status...")
       try {
-        const { data } = await axios.get("http://localhost:8000/api/users/auth-check", {
+        const { data } = await axios.get(`${import.meta.env.VITE_SOCKET_URL}/api/users/auth-check`, {
           withCredentials: true,
         })
 
