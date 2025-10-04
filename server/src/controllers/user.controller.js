@@ -112,7 +112,9 @@ export const googleOAuthCallback = async (req, res) => {
 
     const options = {
       httpOnly: true,
-      maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+      maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
+      secure: true,
+      sameSite: 'none',
     }
 
     res.status(200)
@@ -190,7 +192,9 @@ export const loginUser = async (req, res) => {
     // cookie options
   const options = {
     httpOnly: true,
-    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
+    secure: true,
+    sameSite: 'none',
   }
 
   // adding tokens to json response for postman testing
@@ -226,7 +230,9 @@ export const logoutUser = async (req, res) => {
     // cookie options
   const options = {
     httpOnly: true,
-    maxAge: 14 * 24 * 60 * 60 * 1000 // 14 days
+    maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
+    secure: true,
+    sameSite: 'none',
   }
 
   return res.status(200)
