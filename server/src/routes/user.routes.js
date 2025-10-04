@@ -2,7 +2,6 @@ import { Router } from "express";
 import { loginUser, logoutUser, registerUser, eidtUserProfile, getGoogleAuthURL, googleOAuthCallback } from "../controllers/user.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.midlleware.js";
-import { use } from "react";
 
 const userRouter = Router()
 
