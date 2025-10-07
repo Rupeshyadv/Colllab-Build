@@ -194,7 +194,7 @@ export const loginUser = async (req, res) => {
     httpOnly: true,
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
     secure: true,
-    sameSite: 'none',
+    sameSite: "none",
   }
 
   // adding tokens to json response for postman testing

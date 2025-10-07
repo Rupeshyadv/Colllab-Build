@@ -19,7 +19,7 @@ function LandingPage() {
     }
 
     checkAuth()
-  })
+  }, [])
 
   return (
     <div>

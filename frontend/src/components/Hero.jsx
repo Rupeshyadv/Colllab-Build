@@ -4,16 +4,15 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
 
 const Hero = () => {
-  const {isAuthenticated} = useSelector((state) => state.auth)
+  const { isAuthenticated } = useSelector((state) => state.auth)
 
   const navigate = useNavigate()
   const handleStartCodingNow = () => {
-    if(isAuthenticated) {
+    if(isAuthenticated) 
       navigate('/dashboard')
-    }
-    else{
+    
+    else
       navigate('/login')
-    }
   }
 
   return (
