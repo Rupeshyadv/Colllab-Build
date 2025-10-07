@@ -115,7 +115,6 @@ export const googleOAuthCallback = async (req, res) => {
       maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
       secure: true,
       sameSite: 'none',
-      domain: '.onrender.com',
     }
 
     res.status(200)
@@ -196,7 +195,6 @@ export const loginUser = async (req, res) => {
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
     secure: true,
     sameSite: "none",
-    domain: '.onrender.com',
   }
 
   // adding tokens to json response for postman testing
@@ -235,7 +233,6 @@ export const logoutUser = async (req, res) => {
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
     secure: true,
     sameSite: 'none',
-    domain: '.onrender.com',
   }
 
   return res.status(200)
