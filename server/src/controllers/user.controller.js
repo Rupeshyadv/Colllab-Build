@@ -117,7 +117,7 @@ export const googleOAuthCallback = async (req, res) => {
       sameSite: 'none',
     }
 
-    res.status(200)
+    return res.status(200)
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .redirect('https://colllab-build.onrender.com/dashboard') 

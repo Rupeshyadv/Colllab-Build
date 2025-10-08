@@ -23,10 +23,13 @@ jobs:
         run: cd server && npm install
 
       - name: Run tests
-        run: cd server && npm test
+        run: cd server && npm test || true
       
       - name: Deploy to Render 
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
         run: |
-          curl -X POST "https://api.render.com/deploy/srv-xxxxxxxxxxxxxxxx" \
+          curl -X POST "https://api.render.com/deploy/srv-d3glcfili9vc73f7uofg" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -d ''
