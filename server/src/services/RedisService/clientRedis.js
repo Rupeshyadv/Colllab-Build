@@ -3,8 +3,7 @@ import { createClient } from 'redis'
 const clientRedis = createClient({
     url: process.env.REDIS_URL,
     socket: {
-        tls: true,
-        rejectUnauthorized: false,
+        tls: false,
         connectTimeout: 7000,
     }
 })
