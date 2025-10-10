@@ -3,7 +3,6 @@ import { ApiError } from '../utils/ApiError.js'
 import { prisma } from '../db/prisma.client.js'
 
 export const authMiddleware = async (req, res, next) => {
-    console.log("cookies are ")
     try {
         const token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies?.accessToken
         if (!token) {
