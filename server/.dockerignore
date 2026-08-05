@@ -1,0 +1,30 @@
+# Node dependencies (installed inside container)
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# Build output
+dist
+build
+
+# Logs
+*.log
+
+# Environment variables (never send secrets)
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# Docker configs (not needed inside image)
+Dockerfile
+docker-compose.yaml
+
+# IDE / OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db

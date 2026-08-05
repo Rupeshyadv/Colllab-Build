@@ -48,7 +48,6 @@ dump/
 
 # Docker
 docker-compose.override.yml
-.dockerignore
 
 # Misc
 *.swp

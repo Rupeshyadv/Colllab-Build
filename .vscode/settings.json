@@ -3,5 +3,6 @@
     "files.associations": {
         "*.ejs": "html",
         "CIRCLE.C": "cpp"
-    }
+    },
+    "prisma.pinToPrisma6": true
 }

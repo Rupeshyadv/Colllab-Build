@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js --ignore temp",
-    "start": "node index.js"
+    "start": "node index.js",
+    "load-test:room": "node scripts/load-test-room.js"
   },
   "keywords": [],
   "author": "",
@@ -31,7 +32,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
-    "prisma": "^6.10.1"
+    "prisma": "^6.10.1",
+    "socket.io-client": "^4.8.1"
   },
   "prisma": "./prisma/schema.prisma"
 }
