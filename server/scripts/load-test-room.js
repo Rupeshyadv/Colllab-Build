@@ -3,6 +3,7 @@
 import 'dotenv/config'
 import { io } from 'socket.io-client'
 import { randomUUID } from 'node:crypto'
+import { readFileSync } from 'node:fs'
 
 const CLIENT_EVENTS = {
   JOIN_ROOM: 'join_room',
@@ -22,6 +23,7 @@ const SERVER_EVENTS = {
 const DEFAULTS = {
   url: process.env.LOAD_TEST_URL || `http://localhost:${process.env.PORT || 3000}`,
   room: process.env.LOAD_TEST_ROOM || '',
+  tokensFile: process.env.LOAD_TEST_TOKENS_FILE || '',
   start: 10,
   step: 10,
   max: 200,
@@ -39,6 +41,7 @@ Usage:
 
 Options:
   --url URL              Socket.IO server (default: ${DEFAULTS.url})
+  --tokens-file PATH     File containing one access token per line
   --start N              First concurrent-user stage (default: ${DEFAULTS.start})
   --step N               Users added per stage (default: ${DEFAULTS.step})
   --max N                Hard maximum; never exceeded (default: ${DEFAULTS.max})
@@ -68,7 +71,9 @@ function parseArgs(argv) {
     const value = argv[i + 1]
     if (value === undefined || value.startsWith('--')) throw new Error(`Missing value for ${arg}`)
     i += 1
-    if (key === 'url' || key === 'room') options[key] = value
+    if (key === 'url' || key === 'room' || key === 'tokensfile') {
+      options[key === 'tokensfile' ? 'tokensFile' : key] = value
+    }
     else if (['start', 'step', 'max', 'rampms', 'hold', 'editseconds', 'timeoutms'].includes(key)) {
       const optionKey = key === 'rampms' ? 'rampMs' : key === 'hold' ? 'holdSeconds' : key === 'editseconds' ? 'editSeconds' : key
       options[optionKey] = Number(value)
@@ -89,13 +94,14 @@ function parseArgs(argv) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
-function makeUser(url, roomId, userNumber, options, stats) {
+function makeUser(url, roomId, userNumber, token, options, stats) {
   const userId = `load-test-${userNumber}-${randomUUID()}`
   const socket = io(url, {
     transports: ['websocket'],
     reconnection: false,
     timeout: options.timeoutMs,
     forceNew: true,
+    auth: token ? { token } : undefined,
   })
   const user = { socket, userId, joined: false, editTimer: null }
 
@@ -183,6 +189,9 @@ function summarize(stats, target, activeUsers, elapsedMs) {
 
 async function main() {
   const options = parseArgs(process.argv.slice(2))
+  const tokens = options.tokensFile
+    ? readFileSync(options.tokensFile, 'utf8').split(/\r?\n/).map((token) => token.trim()).filter(Boolean)
+    : []
   const users = []
   let interrupted = false
 
@@ -197,6 +206,7 @@ async function main() {
   process.once('SIGTERM', () => { interrupted = true; cleanup() })
 
   console.log(`Load test: ${options.url}, room=${options.room}`)
+  console.log(`Authentication tokens loaded: ${tokens.length}`)
   console.log(`Safety limits: max=${options.max}, stage=${options.holdSeconds}s, stop failure-rate=${options.failureRate}`)
 
   let previousStage = 0
@@ -204,7 +214,8 @@ async function main() {
     const stageStats = newStats()
     const stageStarted = Date.now()
     while (users.length < target && !interrupted) {
-      users.push(makeUser(options.url, options.room, users.length + 1, options, stageStats))
+      const token = tokens.length ? tokens[(users.length) % tokens.length] : ''
+      users.push(makeUser(options.url, options.room, users.length + 1, token, options, stageStats))
       await sleep(options.rampMs)
     }
     await sleep(options.holdSeconds * 1000)

@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { initializeSocketIO } from './socket/socket.index.js';
 import { startCodeFlush } from './services/RedisService/codeFlush.js';
+import { socketAuthMiddleware } from './middlewares/socketAuth.middleware.js';
 
 export const app = express()
 export const httpServer = createServer(app);
@@ -18,6 +19,8 @@ export const io = new Server(httpServer, {
     pingInterval: 10000,
     transports: ['websocket', 'polling'],
 })
+
+io.use(socketAuthMiddleware)
 
 app.use(express.json({}))
 app.use(cookieParser())

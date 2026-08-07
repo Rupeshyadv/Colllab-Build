@@ -1,9 +1,15 @@
 import { ClientToServerEvents, ServerToClientEvents } from "./socket.events.js";
 import { saveUserCode } from "../services/codeExeService/tempFileManager.js";
 import { runCodeInSandbox } from "../services/codeExeService/dockerRunner.js";
+import { isSocketInRoom } from './socket.utils.js';
 
 export const registerTerminalEvents = (socket, io) => {
     socket.on(ClientToServerEvents.START_EXECUTION, async ({ roomId, codeData }) => {
+        if (!isSocketInRoom(socket, roomId)) {
+            socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Join the room before executing code." });
+            return;
+        }
+
         const { code, language } = codeData
 
         // Save the user code to a temporary file
@@ -55,7 +61,7 @@ export const registerTerminalEvents = (socket, io) => {
     })
 
     socket.on(ClientToServerEvents.TERMINAL_INPUT, async ({ input }) => {
-        if (!socket.containerId || !socket.stdinStream) {
+        if (!socket.roomId || !socket.containerId || !socket.stdinStream) {
             socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "No active execution found." });
             return;
         }
@@ -70,6 +76,11 @@ export const registerTerminalEvents = (socket, io) => {
 
     // clear terminal output
     socket.on(ClientToServerEvents.CLEAR_TERMINAL, ({ roomId }) => {
+        if (!isSocketInRoom(socket, roomId)) {
+            socket.emit(ServerToClientEvents.SOCKET_ERROR, { message: "Join the room before clearing the terminal." });
+            return;
+        }
+
         io.to(roomId).emit(ServerToClientEvents.CLEAR_TERMINAL);
     });
 }
