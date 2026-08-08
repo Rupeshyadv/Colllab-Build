@@ -21,6 +21,23 @@ const getSocketToken = (socket) => {
 
 export const socketAuthMiddleware = async (socket, next) => {
   try {
+    const loadTestUserId = socket.handshake.auth?.loadTestUserId
+    if (
+      process.env.LOAD_TEST_BYPASS_AUTH === 'true'
+      && socket.handshake.auth?.loadTest === true
+      && typeof loadTestUserId === 'string'
+      && loadTestUserId.trim()
+    ) {
+      socket.user = {
+        id: loadTestUserId,
+        name: loadTestUserId,
+        username: loadTestUserId,
+        email: `${loadTestUserId}@load-test.invalid`,
+      }
+      socket.isLoadTest = true
+      return next()
+    }
+
     const token = getSocketToken(socket)
     if (!token) return next(new Error('Authentication required'))
 

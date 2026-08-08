@@ -30,17 +30,19 @@ export const registerCodeEvents = (socket, io) => {
     }
 
     try {
-      const participant = await prisma.participant.findUnique({
-        where: {
-          user_id_session_id: {
-            user_id: socket.user.id,
-            session_id: roomId,
+      const participant = socket.isLoadTest
+        ? { session: { isActive: true } }
+        : await prisma.participant.findUnique({
+          where: {
+            user_id_session_id: {
+              user_id: socket.user.id,
+              session_id: roomId,
+            },
           },
-        },
-        select: {
-          session: { select: { isActive: true } },
-        },
-      })
+          select: {
+            session: { select: { isActive: true } },
+          },
+        })
 
       if (!participant || !participant.session.isActive) {
         emitSocketError(socket, 'You are not allowed to join this room')
@@ -79,6 +81,8 @@ export const registerCodeEvents = (socket, io) => {
     socket.to(roomId).emit(ServerToClientEvents.CODE_UPDATE, {
       code,
       userId: socket.user.id,
+      ...(typeof editId === 'string' ? { editId } : {}),
+      ...(typeof sentAt === 'number' ? { sentAt } : {}),
     })
 
     try {
@@ -86,6 +90,28 @@ export const registerCodeEvents = (socket, io) => {
       await clientRedis.set(`room:${roomId}:dirty`, 1)
     } catch (error) {
       console.error('Failed to cache code change:', error)
+      emitSocketError(socket, 'Failed to save code change')
+    }
+  })
+
+  socket.on(ClientToServerEvents.LOAD_TEST_CODE_CHANGE, async ({ roomId, code, editId, sentAt } = {}) => {
+    if (!isSocketInRoom(socket, roomId)) {
+      emitSocketError(socket, 'Join the room before sending code changes')
+      return
+    }
+
+    socket.to(roomId).emit(ServerToClientEvents.LOAD_TEST_CODE_UPDATE, {
+      code,
+      userId: socket.user.id,
+      editId,
+      sentAt,
+    })
+
+    try {
+      await clientRedis.set(`room:${roomId}:code`, code)
+      await clientRedis.set(`room:${roomId}:dirty`, 1)
+    } catch (error) {
+      console.error('Failed to cache load-test code change:', error)
       emitSocketError(socket, 'Failed to save code change')
     }
   })

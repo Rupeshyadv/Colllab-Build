@@ -1,4 +1,4 @@
-import {API} from './axiosInstance.js'
+import { API } from './axiosInstance.js'
 
 export const loginApi = async (email, username, password) => {
 
@@ -17,7 +17,7 @@ export const loginApi = async (email, username, password) => {
     }
 }
 
-export const registerApi = async (name=null, username, email, password) => {
+export const registerApi = async (name = null, username, email, password) => {
     const formData = {
         name,
         username,
@@ -33,7 +33,7 @@ export const registerApi = async (name=null, username, email, password) => {
         throw error
     }
 }
-export const logoutApi = async () =>{
+export const logoutApi = async () => {
     try {
         const response = await API.post('/users/logout')
         return response?.data
@@ -69,7 +69,7 @@ export const editUserProfileApi = async (username, profileImg) => {
     }
 }
 
-export const getGoogleOAuthUrlApi = async () => { 
+export const getGoogleOAuthUrlApi = async () => {
     try {
         const response_url = await API.get('/users/auth/google/url')
 

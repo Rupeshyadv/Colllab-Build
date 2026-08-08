@@ -7,6 +7,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import Spinner from "./components/Spinner.jsx";
 import { Toaster } from "react-hot-toast";
 import App from "./App.jsx";
+import "./api/axiosInterceptors";
 
 createRoot(document.getElementById("root")).render(
   <BrowserRouter>

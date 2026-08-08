@@ -5,6 +5,7 @@ export const ClientToServerEvents = {
 
   // Collaboration
   CODE_CHANGE: 'code_change',
+  LOAD_TEST_CODE_CHANGE: 'load_test_code_change',
   CURSOR_MOVE: 'cursor_move',
   LANGUAGE_CHANGE: 'language_change',
   FILE_SWITCH: 'file_switch',
@@ -33,6 +34,7 @@ export const ServerToClientEvents = {
 
   // Code & editor updates
   CODE_UPDATE: 'code_update',
+  LOAD_TEST_CODE_UPDATE: 'load_test_code_update',
   CURSOR_UPDATE: 'cursor_update',
   LANGUAGE_UPDATED: 'language_updated',
   FILE_UPDATED: 'file_updated',

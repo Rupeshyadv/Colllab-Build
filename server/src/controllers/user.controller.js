@@ -8,7 +8,7 @@ import { google } from 'googleapis'
 export const generateAccessAndRefreshTokens = async (user) => {
   try {
     const payload = {
-      userId: user.id, 
+      userId: user.id,
       email: user.email,
     }
 
@@ -17,7 +17,7 @@ export const generateAccessAndRefreshTokens = async (user) => {
       process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION }
     )
-    
+
     const refreshToken = jwt.sign(
       payload,
       process.env.REFRESH_TOKEN_SECRET,
@@ -34,6 +34,53 @@ export const generateAccessAndRefreshTokens = async (user) => {
     throw new ApiError(500, 'Error generating tokens')
   }
 }
+
+export const refreshAccessToken = async (req, res) => {
+  const incomingRefreshToken = req.cookies.refreshToken;
+
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "Refresh token missing");
+  }
+
+  try {
+    const decoded = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId }
+    });
+
+    if (!user)
+      throw new ApiError(401, "Invalid refresh token");
+
+    // compare with DB
+    if (incomingRefreshToken !== user.refreshToken)
+      throw new ApiError(401, "Refresh token expired");
+
+    const { accessToken, refreshToken } =
+      await generateAccessAndRefreshTokens(user);
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none"
+    };
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .json({
+        accessToken,
+        message: "Token refreshed"
+      });
+
+  } catch (err) {
+    throw new ApiError(401, "Invalid refresh token");
+  }
+};
 
 const oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -63,7 +110,7 @@ export const googleOAuthCallback = async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code)
     oauth2Client.setCredentials(tokens)
-    
+
     const oauth2 = google.oauth2({
       version: 'v2',
       auth: oauth2Client,
@@ -72,12 +119,12 @@ export const googleOAuthCallback = async (req, res) => {
     const { data } = await oauth2.userinfo.get()
 
     const { id, email, name, picture } = data
-    
+
     // check if user exists by googleId
     let user = await prisma.user.findUnique({
       where: { id }
     })
-    
+
     // if not, check if user exists by email
     if (!user) {
       user = await prisma.user.findUnique({
@@ -118,9 +165,9 @@ export const googleOAuthCallback = async (req, res) => {
     }
 
     return res.status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
-    .redirect('https://colllab-build.onrender.com/dashboard') 
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .redirect('https://colllab-build.onrender.com/dashboard')
   } catch (error) {
     console.error('Error during Google OAuth callback:', error)
     throw new ApiError(500, 'Error during Google OAuth process')
@@ -131,8 +178,8 @@ export const googleOAuthCallback = async (req, res) => {
 export const registerUser = async (req, res) => {
   const { name, username, email, password } = req.body
 
-  if(!email.trim() || !password.trim() || !username.trim()) 
-    throw new ApiError(400,  'All fields are required')
+  if (!email.trim() || !password.trim() || !username.trim())
+    throw new ApiError(400, 'All fields are required')
 
   const existingUser = await prisma.user.findUnique({
     where: { email }
@@ -156,20 +203,20 @@ export const registerUser = async (req, res) => {
   return res.status(201).json({
     message: 'User registered successfully',
     user: {
-        id: user.id,
-        name: user.name,    
-        username: user.username,    
-        email: user.email,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at, 
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at,
     },
-    })
+  })
 }
 
 export const loginUser = async (req, res) => {
   const { email, username, password } = req.body
 
-  if(!email.trim() || !password.trim() || !username.trim()) 
+  if (!email.trim() || !password.trim() || !username.trim())
     throw new ApiError(400, 'Email/Username and password are required')
 
   const user = await prisma.user.findUnique({
@@ -188,7 +235,7 @@ export const loginUser = async (req, res) => {
 
   const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user)
 
-    // cookie options
+  // cookie options
   const options = {
     httpOnly: true,
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
@@ -214,7 +261,7 @@ export const loginUser = async (req, res) => {
 }
 
 export const logoutUser = async (req, res) => {
-  const userId = req.user?.id;  
+  const userId = req.user?.id;
   if (!userId) {
     return res.status(400).json({ message: "User ID not found" });
   }
@@ -226,7 +273,7 @@ export const logoutUser = async (req, res) => {
     }
   })
 
-    // cookie options
+  // cookie options
   const options = {
     httpOnly: true,
     maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
@@ -238,7 +285,7 @@ export const logoutUser = async (req, res) => {
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
     .json(
-      { 
+      {
         message: "Logout successful",
         user: {
           id: loggedOutUser.id,

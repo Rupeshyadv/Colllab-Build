@@ -4,16 +4,18 @@ import 'dotenv/config'
 import { io } from 'socket.io-client'
 import { randomUUID } from 'node:crypto'
 import { readFileSync } from 'node:fs'
+import { performance } from 'node:perf_hooks'
 
 const CLIENT_EVENTS = {
   JOIN_ROOM: 'join_room',
   LEAVE_ROOM: 'leave_room',
   CODE_CHANGE: 'code_change',
+  LOAD_TEST_CODE_CHANGE: 'load_test_code_change',
   CURSOR_MOVE: 'cursor_move',
 }
 
 const SERVER_EVENTS = {
-  CODE_UPDATE: 'code_update',
+  LOAD_TEST_CODE_UPDATE: 'load_test_code_update',
   CURSOR_UPDATE: 'cursor_update',
   USER_JOINED: 'user_joined',
   USER_LEFT: 'user_left',
@@ -101,7 +103,9 @@ function makeUser(url, roomId, userNumber, token, options, stats) {
     reconnection: false,
     timeout: options.timeoutMs,
     forceNew: true,
-    auth: token ? { token } : undefined,
+    auth: token
+      ? { token }
+      : { loadTest: true, loadTestUserId: userId },
   })
   const user = { socket, userId, joined: false, editTimer: null }
 
@@ -116,9 +120,13 @@ function makeUser(url, roomId, userNumber, token, options, stats) {
     user.editTimer = setInterval(() => {
       if (!socket.connected) return
       stats.codeChangesSent += 1
-      socket.emit(CLIENT_EVENTS.CODE_CHANGE, {
+      const editId = `${userId}-edit-${stats.codeChangesSent}`
+      const sentAt = performance.now()
+      socket.emit(CLIENT_EVENTS.LOAD_TEST_CODE_CHANGE, {
         roomId,
         userId,
+        editId,
+        sentAt,
         code: `// load-test user ${userNumber}\nconst value${userNumber} = ${stats.codeChangesSent};\n`,
       })
       stats.cursorMovesSent += 1
@@ -143,7 +151,17 @@ function makeUser(url, roomId, userNumber, token, options, stats) {
     stats.disconnected += 1
     stats.disconnectReasons[reason] = (stats.disconnectReasons[reason] || 0) + 1
   })
-  socket.on(SERVER_EVENTS.CODE_UPDATE, () => { stats.codeUpdatesReceived += 1 })
+  socket.on(SERVER_EVENTS.LOAD_TEST_CODE_UPDATE, ({ sentAt } = {}) => {
+    stats.codeUpdatesReceived += 1
+    if (typeof sentAt !== 'number') {
+      stats.syncLatencyMissingTimestamps += 1
+      return
+    }
+
+    const latencyMs = performance.now() - sentAt
+    if (latencyMs >= 0 && Number.isFinite(latencyMs)) stats.syncLatencies.push(latencyMs)
+    else stats.syncLatencyInvalidSamples += 1
+  })
   socket.on(SERVER_EVENTS.CURSOR_UPDATE, () => { stats.cursorUpdatesReceived += 1 })
   socket.on(SERVER_EVENTS.USER_JOINED, () => { stats.userJoinedEventsReceived += 1 })
   socket.on(SERVER_EVENTS.USER_LEFT, () => { stats.userLeftEventsReceived += 1 })
@@ -160,7 +178,9 @@ function newStats() {
     created: 0, connected: 0, connectionErrors: 0, disconnected: 0,
     codeChangesSent: 0, cursorMovesSent: 0, codeUpdatesReceived: 0,
     cursorUpdatesReceived: 0, userJoinedEventsReceived: 0, userLeftEventsReceived: 0,
-    socketErrors: 0, connectionLatencies: [], disconnectReasons: {}, lastError: '',
+    socketErrors: 0, connectionLatencies: [], syncLatencies: [],
+    syncLatencyMissingTimestamps: 0, syncLatencyInvalidSamples: 0,
+    disconnectReasons: {}, lastError: '',
   }
 }
 
@@ -169,6 +189,16 @@ function summarize(stats, target, activeUsers, elapsedMs) {
     ? Math.round(stats.connectionLatencies.reduce((a, b) => a + b, 0) / stats.connectionLatencies.length)
     : null
   const failedConnections = target - activeUsers
+  const sortedSyncLatencies = [...stats.syncLatencies].sort((a, b) => a - b)
+  const percentile = (ratio) => sortedSyncLatencies.length
+    ? Number(sortedSyncLatencies[Math.min(
+      sortedSyncLatencies.length - 1,
+      Math.ceil(sortedSyncLatencies.length * ratio) - 1,
+    )].toFixed(2))
+    : null
+  const syncAverage = sortedSyncLatencies.length
+    ? Number((sortedSyncLatencies.reduce((sum, latency) => sum + latency, 0) / sortedSyncLatencies.length).toFixed(2))
+    : null
   return {
     targetUsers: target,
     connectedUsers: activeUsers,
@@ -180,6 +210,15 @@ function summarize(stats, target, activeUsers, elapsedMs) {
     cursorMovesSent: stats.cursorMovesSent,
     codeUpdatesReceived: stats.codeUpdatesReceived,
     cursorUpdatesReceived: stats.cursorUpdatesReceived,
+    syncLatencySamples: sortedSyncLatencies.length,
+    syncLatencyMissingTimestamps: stats.syncLatencyMissingTimestamps,
+    syncLatencyInvalidSamples: stats.syncLatencyInvalidSamples,
+    syncLatencyMs: {
+      average: syncAverage,
+      p50: percentile(0.5),
+      p95: percentile(0.95),
+      max: sortedSyncLatencies.length ? Number(sortedSyncLatencies.at(-1).toFixed(2)) : null,
+    },
     averageConnectMs: avg,
     elapsedSeconds: Number((elapsedMs / 1000).toFixed(1)),
     lastError: stats.lastError || null,
